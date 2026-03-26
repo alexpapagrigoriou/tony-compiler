@@ -1,70 +1,29 @@
 package io.github.alexpapagre.tony;
 
+import java_cup.runtime.Symbol;
+
 %%
 
 %class Lexer
 %unicode
-%integer
 %line
 %column
+%cup
+
+%eofval{
+    return createSymbol(Symbols.EOF);
+%eofval}
 
 %{
     private int blockComments = 0;
 
-    public static class Token {
-        public static final int T_and = 1;
-        public static final int T_bool = 2;
-        public static final int T_char = 3;
-        public static final int T_decl = 4;
-        public static final int T_def = 5;
-        public static final int T_else = 6;
-        public static final int T_elseif = 7;
-        public static final int T_end = 8;
-        public static final int T_exit = 9;
-        public static final int T_false = 10;
-        public static final int T_for = 11;
-        public static final int T_head = 12;
-        public static final int T_if = 13;
-        public static final int T_int = 14;
-        public static final int T_list = 15;
-        public static final int T_mod = 16;
-        public static final int T_new = 17;
-        public static final int T_nil = 18;
-        public static final int T_nilQ = 19;
-        public static final int T_not = 20;
-        public static final int T_or = 21;
-        public static final int T_ref = 22;
-        public static final int T_return = 23;
-        public static final int T_skip = 24;
-        public static final int T_tail = 25;
-        public static final int T_true = 26;
+    private Symbol createSymbol(int type) {
+        return new Symbol(type, yyline, yycolumn);
+    }
 
-        public static final int T_id = 27;
-        public static final int T_int_const = 28;
-        public static final int T_char_const = 29;
-        public static final int T_string_literal = 30;
-
-        public static final int T_plus = 31;
-        public static final int T_minus = 32;
-        public static final int T_times = 33;
-        public static final int T_div = 34;
-        public static final int T_hash = 35;
-        public static final int T_eq = 36;
-        public static final int T_neq = 37;
-        public static final int T_lt = 38;
-        public static final int T_gt = 39;
-        public static final int T_le = 40;
-        public static final int T_ge = 41;
-
-        public static final int T_lparen = 42;
-        public static final int T_rparen = 43;
-        public static final int T_lbracket = 44;
-        public static final int T_rbracket = 45;
-        public static final int T_comma = 46;
-        public static final int T_semicolon = 47;
-        public static final int T_colon = 48;
-        public static final int T_assign = 49;
-    };
+    private Symbol createSymbol(int type, Object value) {
+        return new Symbol(type, yyline, yycolumn, value);
+    }
 %}
 
 %state BLOCK_COMMENT
@@ -87,58 +46,58 @@ line_comment = "%"[^\n]*(\n)?
 %%
 
 <YYINITIAL> {
-    "and" { return Token.T_and; }
-    "bool" { return Token.T_bool; }
-    "char" { return Token.T_char; }
-    "decl" { return Token.T_decl; }
-    "def" { return Token.T_def; }
-    "else" { return Token.T_else; }
-    "elseif" { return Token.T_elseif; }
-    "end" { return Token.T_end; }
-    "exit" { return Token.T_exit; }
-    "false" { return Token.T_false; }
-    "for" { return Token.T_for; }
-    "head" { return Token.T_head; }
-    "if" { return Token.T_if; }
-    "int" { return Token.T_int; }
-    "list" { return Token.T_list; }
-    "mod" { return Token.T_mod; }
-    "new" { return Token.T_new; }
-    "nil" { return Token.T_nil; }
-    "nilQ" { return Token.T_nilQ; }
-    "not" { return Token.T_not; }
-    "or" { return Token.T_or; }
-    "ref" { return Token.T_ref; }
-    "return" { return Token.T_return; }
-    "skip" { return Token.T_skip; }
-    "tail" { return Token.T_tail; }
-    "true" { return Token.T_true; }
+    "and" { return createSymbol(Symbols.T_and); }
+    "bool" { return createSymbol(Symbols.T_bool); }
+    "char" { return createSymbol(Symbols.T_char); }
+    "decl" { return createSymbol(Symbols.T_decl); }
+    "def" { return createSymbol(Symbols.T_def); }
+    "else" { return createSymbol(Symbols.T_else); }
+    "elseif" { return createSymbol(Symbols.T_elseif); }
+    "end" { return createSymbol(Symbols.T_end); }
+    "exit" { return createSymbol(Symbols.T_exit); }
+    "false" { return createSymbol(Symbols.T_false); }
+    "for" { return createSymbol(Symbols.T_for); }
+    "head" { return createSymbol(Symbols.T_head); }
+    "if" { return createSymbol(Symbols.T_if); }
+    "int" { return createSymbol(Symbols.T_int); }
+    "list" { return createSymbol(Symbols.T_list); }
+    "mod" { return createSymbol(Symbols.T_mod); }
+    "new" { return createSymbol(Symbols.T_new); }
+    "nil" { return createSymbol(Symbols.T_nil); }
+    "nilQ" { return createSymbol(Symbols.T_nilQ); }
+    "not" { return createSymbol(Symbols.T_not); }
+    "or" { return createSymbol(Symbols.T_or); }
+    "ref" { return createSymbol(Symbols.T_ref); }
+    "return" { return createSymbol(Symbols.T_return); }
+    "skip" { return createSymbol(Symbols.T_skip); }
+    "tail" { return createSymbol(Symbols.T_tail); }
+    "true" { return createSymbol(Symbols.T_true); }
 
-    {id} { return Token.T_id; }
-    {int_const} { return Token.T_int_const; }
-    {char_const} { return Token.T_char_const; }
-    {string_literal} { return Token.T_string_literal; }
+    {id} { return createSymbol(Symbols.T_id, yytext()); }
+    {int_const} { return createSymbol(Symbols.T_int_const, yytext()); }
+    {char_const} { return createSymbol(Symbols.T_char_const, yytext()); }
+    {string_literal} { return createSymbol(Symbols.T_string_literal, yytext()); }
 
-    "+" { return Token.T_plus; }
-    "-" { return Token.T_minus; }
-    "*" { return Token.T_times; }
-    "/" { return Token.T_div; }
-    "#" { return Token.T_hash; }
-    "=" { return Token.T_eq; }
-    "<>" { return Token.T_neq; }
-    "<" { return Token.T_lt; }
-    ">" { return Token.T_gt; }
-    "<=" { return Token.T_le; }
-    ">=" { return Token.T_ge; }
+    "+" { return createSymbol(Symbols.T_plus); }
+    "-" { return createSymbol(Symbols.T_minus); }
+    "*" { return createSymbol(Symbols.T_times); }
+    "/" { return createSymbol(Symbols.T_div); }
+    "#" { return createSymbol(Symbols.T_hash); }
+    "=" { return createSymbol(Symbols.T_eq); }
+    "<>" { return createSymbol(Symbols.T_neq); }
+    "<" { return createSymbol(Symbols.T_lt); }
+    ">" { return createSymbol(Symbols.T_gt); }
+    "<=" { return createSymbol(Symbols.T_le); }
+    ">=" { return createSymbol(Symbols.T_ge); }
 
-    "(" { return Token.T_lparen; }
-    ")" { return Token.T_rparen; }
-    "[" { return Token.T_lbracket; }
-    "]" { return Token.T_rbracket; }
-    "," { return Token.T_comma; }
-    ";" { return Token.T_semicolon; }
-    ":" { return Token.T_colon; }
-    ":=" { return Token.T_assign; }
+    "(" { return createSymbol(Symbols.T_lparen); }
+    ")" { return createSymbol(Symbols.T_rparen); }
+    "[" { return createSymbol(Symbols.T_lbracket); }
+    "]" { return createSymbol(Symbols.T_rbracket); }
+    "," { return createSymbol(Symbols.T_comma); }
+    ";" { return createSymbol(Symbols.T_semicolon); }
+    ":" { return createSymbol(Symbols.T_colon); }
+    ":=" { return createSymbol(Symbols.T_assign); }
 
     {ws} {}
     {line_comment} {}

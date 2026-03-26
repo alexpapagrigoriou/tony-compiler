@@ -13,7 +13,7 @@ public class Main {
             System.exit(1);
         }
 
-        Lexer lexer;
+        Lexer lexer = null;
         if (args.length == 1) {
             if (!args[0].endsWith(".tony")) {
                 System.out.println("File must be a '.tony' file!");
@@ -25,20 +25,17 @@ public class Main {
             } catch (IOException e) {
                 System.out.println("Could not open file: " + args[0]);
                 System.exit(1);
-                return;
             }
         } else {
             lexer = new Lexer(new InputStreamReader(System.in));
         }
 
+        Parser parser = new Parser(lexer);
         try {
-            int token = lexer.yylex();
-            while (token != Lexer.YYEOF) {
-                System.out.println("Token type: " + token + " lexeme: " + lexer.yytext());
-                token = lexer.yylex();
-            }
-        } catch (IOException e) {
-            System.out.println("Error :" + e.getMessage());
+            parser.parse();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 }

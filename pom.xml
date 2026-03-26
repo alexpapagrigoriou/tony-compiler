@@ -17,8 +17,8 @@
         <jar.name>tony</jar.name>
 
         <jflex.version>1.9.1</jflex.version>
-        <!--
         <java-cup.version>11b-20160615-3</java-cup.version>
+        <!--
         <asm.version>9.7</asm.version>
         -->
     </properties>
@@ -30,13 +30,13 @@
             <version>${jflex.version}</version>
         </dependency>
 
-        <!--
         <dependency>
             <groupId>com.github.vbmacher</groupId>
             <artifactId>java-cup-runtime</artifactId>
             <version>${java-cup.version}</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
@@ -85,7 +85,6 @@
                 </executions>
             </plugin>
 
-            <!--
             <plugin>
                 <groupId>com.github.vbmacher</groupId>
                 <artifactId>cup-maven-plugin</artifactId>
@@ -104,7 +103,6 @@
                     </execution>
                 </executions>
             </plugin>
-            -->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
