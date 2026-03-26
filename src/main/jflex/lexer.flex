@@ -5,6 +5,7 @@ import java_cup.runtime.Symbol;
 %%
 
 %class Lexer
+%throws LexerException
 %unicode
 %line
 %column
@@ -16,6 +17,39 @@ import java_cup.runtime.Symbol;
 
 %{
     private int blockComments = 0;
+
+    private char resolveChar(String s) {
+        if (s.length() == 1) {
+            return s.charAt(0);
+        }
+
+        return switch (s.charAt(1)) {
+            case 't' -> '\t';
+            case 'n' -> '\n';
+            case 'r' -> '\r';
+            case '0' -> '\0';
+            case '\\' -> '\\';
+            case '\'' -> '\'';
+            case '"' -> '"';
+            case 'x' -> (char) Integer.parseInt(s.substring(2), 16);
+            default -> throw new RuntimeException("Unknown escape sequence: " + s);
+        };
+    }
+
+    private String resolveString(String s) {
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < s.length()) {
+            if (s.charAt(i) == '\\') {
+                int skip = s.charAt(i + 1) == 'x' ? 4 : 2;
+                sb.append(resolveChar(s.substring(i, i + skip)));
+                i += skip;
+            } else {
+                sb.append(s.charAt(i++));
+            }
+        }
+        return sb.toString();
+    }
 
     private Symbol createSymbol(int type) {
         return new Symbol(type, yyline, yycolumn);
@@ -74,9 +108,26 @@ line_comment = "%"[^\n]*(\n)?
     "true" { return createSymbol(Symbols.T_true); }
 
     {id} { return createSymbol(Symbols.T_id, yytext()); }
-    {int_const} { return createSymbol(Symbols.T_int_const, yytext()); }
-    {char_const} { return createSymbol(Symbols.T_char_const, yytext()); }
-    {string_literal} { return createSymbol(Symbols.T_string_literal, yytext()); }
+
+    {int_const} {
+        try {
+            return createSymbol(Symbols.T_int_const, Integer.parseInt(yytext()));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Integer overflow '" + yytext() + "' at line " + (yyline + 1));
+        }
+    }
+
+    {char_const} {
+        String s = yytext();
+        s = s.substring(1, s.length() - 1);
+        return createSymbol(Symbols.T_char_const, resolveChar(s));
+    }
+
+    {string_literal} {
+        String s = yytext();
+        s = s.substring(1, s.length()-1);
+        return createSymbol(Symbols.T_string_literal, resolveString(s));
+    }
 
     "+" { return createSymbol(Symbols.T_plus); }
     "-" { return createSymbol(Symbols.T_minus); }
@@ -102,10 +153,14 @@ line_comment = "%"[^\n]*(\n)?
     {ws} {}
     {line_comment} {}
     "<*" { blockComments = 1; yybegin(BLOCK_COMMENT); }
+
+    [^] { throw new LexerException("Illegal character '" + yytext() + "'", yyline + 1,  yycolumn + 1); }
 }
 
 <BLOCK_COMMENT> {
     "<*" { blockComments++; }
     "*>" { blockComments--; if (blockComments == 0) yybegin(YYINITIAL); }
+
+    <<EOF>> { throw new LexerException("Unterminated block comment", yyline + 1); }
     [^] {}
 }

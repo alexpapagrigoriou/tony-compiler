@@ -8,22 +8,22 @@ public class Main {
 
     public static void main(String[] args) {
         if (args.length > 1) {
-            System.out.println("Usage: tony");
-            System.out.println("Usage: tony [file]");
+            System.err.println("Usage: tony");
+            System.err.println("Usage: tony [file]");
             System.exit(1);
         }
 
         Lexer lexer = null;
         if (args.length == 1) {
             if (!args[0].endsWith(".tony")) {
-                System.out.println("File must be a '.tony' file!");
+                System.err.println("File must be a '.tony' file!");
                 System.exit(1);
             }
 
             try {
                 lexer = new Lexer(new FileReader(args[0]));
             } catch (IOException e) {
-                System.out.println("Could not open file: " + args[0]);
+                System.err.println("Could not open file: " + args[0]);
                 System.exit(1);
             }
         } else {
@@ -33,8 +33,11 @@ public class Main {
         Parser parser = new Parser(lexer);
         try {
             parser.parse();
+        } catch (LexerException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Parser error: " + e.getMessage());
             System.exit(1);
         }
     }

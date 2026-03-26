@@ -14,4 +14,4 @@ program
     | T_bool T_id T_assign T_true
     | T_bool T_id T_assign T_false
     | T_char T_id T_assign T_char_const
-  ;
+    ;
