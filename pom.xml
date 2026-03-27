@@ -10,16 +10,15 @@
     <packaging>jar</packaging>
 
     <properties>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>io.github.alexpapagre.tony.Main</main.class>
-        <jar.name>tony</jar.name>
+        <main.class>io.github.alexpapagre.${artifactId.clean}.Main</main.class>
+        <jar.name>${project.artifactId}</jar.name>
 
         <jflex.version>1.9.1</jflex.version>
         <java-cup.version>11b-20160615-3</java-cup.version>
         <!--
-        <asm.version>9.7</asm.version>
+        <asm.version>9.9</asm.version>
         -->
     </properties>
 
@@ -61,9 +60,34 @@
         <finalName>${jar.name}</finalName>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>regex-property</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>regex-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>artifactId.clean</name>
+                            <value>${project.artifactId}</value>
+                            <regex>-</regex>
+                            <replacement></replacement>
+                            <failIfNoMatch>false</failIfNoMatch>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.15.0</version>
+                <configuration>
+                    <release>${java.version}</release>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -115,10 +139,12 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>${main.class}</mainClass>
                                 </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
                             <filters>
                                 <filter>
@@ -130,7 +156,6 @@
                                     </excludes>
                                 </filter>
                             </filters>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                         </configuration>
                     </execution>
                 </executions>
