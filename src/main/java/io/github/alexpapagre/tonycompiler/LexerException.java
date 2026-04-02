@@ -1,4 +1,4 @@
-package io.github.alexpapagre.tony;
+package io.github.alexpapagre.tonycompiler;
 
 public class LexerException extends Exception {
     private final int line, column;

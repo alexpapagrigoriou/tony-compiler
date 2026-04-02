@@ -1,4 +1,4 @@
-package io.github.alexpapagre.tony;
+package io.github.alexpapagre.tonycompiler;
 
 import java.io.FileReader;
 import java.io.IOException;

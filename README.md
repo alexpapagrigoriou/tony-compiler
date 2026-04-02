@@ -1,4 +1,4 @@
-# Tony
+# Tony Compiler
 
 ## Build
 
@@ -15,13 +15,13 @@ There are two ways to run the program:
 Reads input from a file:
 
 ```bash
-java -jar target/tony.jar <file>
+java -jar target/tony-compiler.jar <file>
 ```
 
 Example:
 
 ```bash
-java -jar target/tony.jar src/main/resources/tony-samples/reverse.tony
+java -jar target/tony-compiler.jar src/main/resources/tony-samples/reverse.tony
 ```
 
 ### 2. Without a file argument
@@ -29,5 +29,5 @@ java -jar target/tony.jar src/main/resources/tony-samples/reverse.tony
 Reads input from standard input (`System.in`):
 
 ```bash
-java -jar target/tony.jar
+java -jar target/tony-compiler.jar
 ```

@@ -1,4 +1,4 @@
-package io.github.alexpapagre.tony;
+package io.github.alexpapagre.tonycompiler;
 
 import java_cup.runtime.Symbol;
 

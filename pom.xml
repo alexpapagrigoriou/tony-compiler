@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.alexpapagre</groupId>
-    <artifactId>tony</artifactId>
+    <artifactId>tony-compiler</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 

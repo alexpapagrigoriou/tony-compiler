@@ -1,4 +1,4 @@
-package io.github.alexpapagre.tony;
+package io.github.alexpapagre.tonycompiler;
 
 terminal T_and, T_bool, T_char, T_decl, T_def, T_else, T_elseif, T_end, T_exit, T_false, T_for, T_head, T_if, T_int, T_list, T_mod, T_new, T_nil, T_nilQ, T_not, T_or, T_ref, T_return, T_skip, T_tail, T_true;
 terminal T_id, T_int_const, T_char_const, T_string_literal;
