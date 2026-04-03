@@ -80,38 +80,38 @@ line_comment = "%"[^\n]*(\n)?
 %%
 
 <YYINITIAL> {
-    "and" { return createSymbol(Symbols.T_and); }
-    "bool" { return createSymbol(Symbols.T_bool); }
-    "char" { return createSymbol(Symbols.T_char); }
-    "decl" { return createSymbol(Symbols.T_decl); }
-    "def" { return createSymbol(Symbols.T_def); }
-    "else" { return createSymbol(Symbols.T_else); }
-    "elseif" { return createSymbol(Symbols.T_elseif); }
-    "end" { return createSymbol(Symbols.T_end); }
-    "exit" { return createSymbol(Symbols.T_exit); }
-    "false" { return createSymbol(Symbols.T_false); }
-    "for" { return createSymbol(Symbols.T_for); }
-    "head" { return createSymbol(Symbols.T_head); }
-    "if" { return createSymbol(Symbols.T_if); }
-    "int" { return createSymbol(Symbols.T_int); }
-    "list" { return createSymbol(Symbols.T_list); }
-    "mod" { return createSymbol(Symbols.T_mod); }
-    "new" { return createSymbol(Symbols.T_new); }
-    "nil" { return createSymbol(Symbols.T_nil); }
-    "nilQ" { return createSymbol(Symbols.T_nilQ); }
-    "not" { return createSymbol(Symbols.T_not); }
-    "or" { return createSymbol(Symbols.T_or); }
-    "ref" { return createSymbol(Symbols.T_ref); }
-    "return" { return createSymbol(Symbols.T_return); }
-    "skip" { return createSymbol(Symbols.T_skip); }
-    "tail" { return createSymbol(Symbols.T_tail); }
-    "true" { return createSymbol(Symbols.T_true); }
+    "and" { return createSymbol(Symbols.AND); }
+    "bool" { return createSymbol(Symbols.BOOL); }
+    "char" { return createSymbol(Symbols.CHAR); }
+    "decl" { return createSymbol(Symbols.DECL); }
+    "def" { return createSymbol(Symbols.DEF); }
+    "else" { return createSymbol(Symbols.ELSE); }
+    "elseif" { return createSymbol(Symbols.ELSEIF); }
+    "end" { return createSymbol(Symbols.END); }
+    "exit" { return createSymbol(Symbols.EXIT); }
+    "false" { return createSymbol(Symbols.FALSE); }
+    "for" { return createSymbol(Symbols.FOR); }
+    "head" { return createSymbol(Symbols.HEAD); }
+    "if" { return createSymbol(Symbols.IF); }
+    "int" { return createSymbol(Symbols.INT); }
+    "list" { return createSymbol(Symbols.LIST); }
+    "mod" { return createSymbol(Symbols.MOD); }
+    "new" { return createSymbol(Symbols.NEW); }
+    "nil" { return createSymbol(Symbols.NIL); }
+    "nilQ" { return createSymbol(Symbols.NILQ); }
+    "not" { return createSymbol(Symbols.NOT); }
+    "or" { return createSymbol(Symbols.OR); }
+    "ref" { return createSymbol(Symbols.REF); }
+    "return" { return createSymbol(Symbols.RETURN); }
+    "skip" { return createSymbol(Symbols.SKIP); }
+    "tail" { return createSymbol(Symbols.TAIL); }
+    "true" { return createSymbol(Symbols.TRUE); }
 
-    {id} { return createSymbol(Symbols.T_id, yytext()); }
+    {id} { return createSymbol(Symbols.ID, yytext()); }
 
     {int_const} {
         try {
-            return createSymbol(Symbols.T_int_const, Integer.parseInt(yytext()));
+            return createSymbol(Symbols.INT_CONST, Integer.parseInt(yytext()));
         } catch (NumberFormatException e) {
             throw new RuntimeException("Integer overflow '" + yytext() + "' at line " + (yyline + 1));
         }
@@ -120,35 +120,35 @@ line_comment = "%"[^\n]*(\n)?
     {char_const} {
         String s = yytext();
         s = s.substring(1, s.length() - 1);
-        return createSymbol(Symbols.T_char_const, resolveChar(s));
+        return createSymbol(Symbols.CHAR_CONST, resolveChar(s));
     }
 
     {string_literal} {
         String s = yytext();
         s = s.substring(1, s.length()-1);
-        return createSymbol(Symbols.T_string_literal, resolveString(s));
+        return createSymbol(Symbols.STRING_LITERAL, resolveString(s));
     }
 
-    "+" { return createSymbol(Symbols.T_plus); }
-    "-" { return createSymbol(Symbols.T_minus); }
-    "*" { return createSymbol(Symbols.T_times); }
-    "/" { return createSymbol(Symbols.T_div); }
-    "#" { return createSymbol(Symbols.T_hash); }
-    "=" { return createSymbol(Symbols.T_eq); }
-    "<>" { return createSymbol(Symbols.T_neq); }
-    "<" { return createSymbol(Symbols.T_lt); }
-    ">" { return createSymbol(Symbols.T_gt); }
-    "<=" { return createSymbol(Symbols.T_le); }
-    ">=" { return createSymbol(Symbols.T_ge); }
+    "+" { return createSymbol(Symbols.PLUS); }
+    "-" { return createSymbol(Symbols.MINUS); }
+    "*" { return createSymbol(Symbols.TIMES); }
+    "/" { return createSymbol(Symbols.DIV); }
+    "#" { return createSymbol(Symbols.HASH); }
+    "=" { return createSymbol(Symbols.EQ); }
+    "<>" { return createSymbol(Symbols.NEQ); }
+    "<" { return createSymbol(Symbols.LT); }
+    ">" { return createSymbol(Symbols.GT); }
+    "<=" { return createSymbol(Symbols.LE); }
+    ">=" { return createSymbol(Symbols.GE); }
 
-    "(" { return createSymbol(Symbols.T_lparen); }
-    ")" { return createSymbol(Symbols.T_rparen); }
-    "[" { return createSymbol(Symbols.T_lbracket); }
-    "]" { return createSymbol(Symbols.T_rbracket); }
-    "," { return createSymbol(Symbols.T_comma); }
-    ";" { return createSymbol(Symbols.T_semicolon); }
-    ":" { return createSymbol(Symbols.T_colon); }
-    ":=" { return createSymbol(Symbols.T_assign); }
+    "(" { return createSymbol(Symbols.LPAREN); }
+    ")" { return createSymbol(Symbols.RPAREN); }
+    "[" { return createSymbol(Symbols.LBRACKET); }
+    "]" { return createSymbol(Symbols.RBRACKET); }
+    "," { return createSymbol(Symbols.COMMA); }
+    ";" { return createSymbol(Symbols.SEMICOLON); }
+    ":" { return createSymbol(Symbols.COLON); }
+    ":=" { return createSymbol(Symbols.ASSIGN); }
 
     {ws} {}
     {line_comment} {}

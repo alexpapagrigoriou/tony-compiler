@@ -1,17 +1,17 @@
 package io.github.alexpapagre.tonycompiler;
 
-terminal T_and, T_bool, T_char, T_decl, T_def, T_else, T_elseif, T_end, T_exit, T_false, T_for, T_head, T_if, T_int, T_list, T_mod, T_new, T_nil, T_nilQ, T_not, T_or, T_ref, T_return, T_skip, T_tail, T_true;
-terminal T_id, T_int_const, T_char_const, T_string_literal;
-terminal T_plus, T_minus, T_times, T_div, T_hash, T_eq, T_neq, T_lt, T_gt, T_le, T_ge;
-terminal T_lparen, T_rparen, T_lbracket, T_rbracket, T_comma, T_semicolon, T_colon, T_assign;
+terminal AND, BOOL, CHAR, DECL, DEF, ELSE, ELSEIF, END, EXIT, FALSE, FOR, HEAD, IF, INT, LIST, MOD, NEW, NIL, NILQ, NOT, OR, REF, RETURN, SKIP, TAIL, TRUE;
+terminal ID, INT_CONST, CHAR_CONST, STRING_LITERAL;
+terminal PLUS, MINUS, TIMES, DIV, HASH, EQ, NEQ, LT, GT, LE, GE;
+terminal LPAREN, RPAREN, LBRACKET, RBRACKET, COMMA, SEMICOLON, COLON, ASSIGN;
 
 non terminal program;
 
 start with program;
 
 program
-  ::= T_int T_id T_assign T_int_const
-    | T_bool T_id T_assign T_true
-    | T_bool T_id T_assign T_false
-    | T_char T_id T_assign T_char_const
+  ::= INT ID ASSIGN INT_CONST
+    | BOOL ID ASSIGN TRUE
+    | BOOL ID ASSIGN FALSE
+    | CHAR ID ASSIGN CHAR_CONST
     ;
