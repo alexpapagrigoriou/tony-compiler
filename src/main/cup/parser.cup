@@ -1,17 +1,188 @@
 package io.github.alexpapagre.tonycompiler;
 
-terminal AND, BOOL, CHAR, DECL, DEF, ELSE, ELSEIF, END, EXIT, FALSE, FOR, HEAD, IF, INT, LIST, MOD, NEW, NIL, NILQ, NOT, OR, REF, RETURN, SKIP, TAIL, TRUE;
+terminal AND, BOOL, CHAR, DECL, DEF, ELSE, ELSIF, END, EXIT, FALSE, FOR, HEAD, IF, INT, LIST, MOD, NEW, NIL, NILQ, NOT, OR, REF, RETURN, SKIP, TAIL, TRUE;
 terminal ID, INT_CONST, CHAR_CONST, STRING_LITERAL;
-terminal PLUS, MINUS, TIMES, DIV, HASH, EQ, NEQ, LT, GT, LE, GE;
+terminal PLUS, MINUS, TIMES, DIV, HASH, EQ, NEQ, LT, GT, LEQ, GEQ;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, COMMA, SEMICOLON, COLON, ASSIGN;
+terminal UPLUS, UMINUS;
 
 non terminal program;
+non terminal func_def;
+non terminal decl_list;
+non terminal stmt_list;
+non terminal header;
+non terminal opt_type;
+non terminal opt_formal_list;
+non terminal formal_list;
+non terminal formal;
+non terminal id_list_tail;
+non terminal type;
+non terminal func_decl;
+non terminal var_def;
+non terminal stmt;
+non terminal elsif_list;
+non terminal opt_else;
+non terminal simple;
+non terminal simple_list;
+non terminal call;
+non terminal opt_expr_list;
+non terminal expr_list;
+non terminal atom;
+non terminal expr;
+
+precedence left OR;
+precedence left AND;
+precedence right NOT;
+precedence nonassoc EQ, NEQ, LT, GT, LEQ, GEQ;
+precedence right HASH;
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV, MOD;
+precedence right UPLUS, UMINUS;
 
 start with program;
 
 program
-  ::= INT ID ASSIGN INT_CONST
-    | BOOL ID ASSIGN TRUE
-    | BOOL ID ASSIGN FALSE
-    | CHAR ID ASSIGN CHAR_CONST
+  ::= func_def
+    ;
+
+func_def
+  ::= DEF header COLON decl_list stmt_list END
+    ;
+
+decl_list
+  ::=
+    | decl_list func_def
+    | decl_list func_decl
+    | decl_list var_def
+    ;
+
+stmt_list
+  ::= stmt
+    | stmt_list stmt
+    ;
+
+header
+  ::= opt_type ID LPAREN opt_formal_list RPAREN
+    ;
+
+opt_type
+  ::=
+    | type
+    ;
+
+opt_formal_list
+  ::=
+    | formal_list
+    ;
+
+formal_list
+  ::= formal
+    | formal_list SEMICOLON formal
+    ;
+
+formal
+  ::= type ID id_list_tail
+    | REF type ID id_list_tail
+    ;
+
+id_list_tail
+  ::=
+    | id_list_tail COMMA ID
+    ;
+
+type
+  ::= INT
+    | BOOL
+    | CHAR
+    | type LBRACKET RBRACKET
+    | LIST LBRACKET type RBRACKET
+    ;
+
+func_decl
+  ::= DECL header
+    ;
+
+var_def
+  ::= type ID id_list_tail
+    ;
+
+stmt
+  ::= simple
+    | EXIT
+    | RETURN expr
+    | IF expr COLON stmt_list elsif_list opt_else END
+    | FOR simple_list SEMICOLON expr SEMICOLON simple_list COLON stmt_list END
+    ;
+
+elsif_list
+  ::=
+    | elsif_list ELSIF expr COLON stmt_list
+    ;
+
+opt_else
+  ::=
+    | ELSE COLON stmt_list
+    ;
+
+simple
+  ::= SKIP
+    | atom ASSIGN expr
+    | call
+    ;
+
+simple_list
+  ::= simple
+    | simple_list COMMA simple
+    ;
+
+call
+  ::= ID LPAREN opt_expr_list RPAREN
+    ;
+
+opt_expr_list
+  ::=
+    | expr_list
+    ;
+
+expr_list
+  ::= expr
+    | expr_list COMMA expr
+    ;
+
+atom
+  ::= ID
+    | STRING_LITERAL
+    | atom LBRACKET expr RBRACKET
+    | call
+    ;
+
+expr
+  ::= atom
+    | INT_CONST
+    | CHAR_CONST
+    | LPAREN expr RPAREN
+    | PLUS expr %prec UPLUS
+    | MINUS expr %prec UMINUS
+    | expr PLUS expr
+    | expr MINUS expr
+    | expr TIMES expr
+    | expr DIV expr
+    | expr MOD expr
+    | expr EQ expr
+    | expr NEQ expr
+    | expr LT expr
+    | expr GT expr
+    | expr LEQ expr
+    | expr GEQ expr
+    | TRUE
+    | FALSE
+    | NOT expr
+    | expr AND expr
+    | expr OR expr
+    | NEW type LBRACKET expr RBRACKET
+    | NIL
+    | NILQ LPAREN expr RPAREN
+    | expr HASH expr
+    | HEAD LPAREN expr RPAREN
+    | TAIL LPAREN expr RPAREN
     ;

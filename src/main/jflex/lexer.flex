@@ -86,7 +86,7 @@ line_comment = "%"[^\n]*(\n)?
     "decl" { return createSymbol(Symbols.DECL); }
     "def" { return createSymbol(Symbols.DEF); }
     "else" { return createSymbol(Symbols.ELSE); }
-    "elseif" { return createSymbol(Symbols.ELSEIF); }
+    "elsif" { return createSymbol(Symbols.ELSIF); }
     "end" { return createSymbol(Symbols.END); }
     "exit" { return createSymbol(Symbols.EXIT); }
     "false" { return createSymbol(Symbols.FALSE); }
@@ -138,8 +138,8 @@ line_comment = "%"[^\n]*(\n)?
     "<>" { return createSymbol(Symbols.NEQ); }
     "<" { return createSymbol(Symbols.LT); }
     ">" { return createSymbol(Symbols.GT); }
-    "<=" { return createSymbol(Symbols.LE); }
-    ">=" { return createSymbol(Symbols.GE); }
+    "<=" { return createSymbol(Symbols.LEQ); }
+    ">=" { return createSymbol(Symbols.GEQ); }
 
     "(" { return createSymbol(Symbols.LPAREN); }
     ")" { return createSymbol(Symbols.RPAREN); }
