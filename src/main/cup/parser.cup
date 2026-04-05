@@ -1,34 +1,42 @@
 package io.github.alexpapagre.tonycompiler;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import io.github.alexpapagre.tonycompiler.ast.*;
+
 terminal AND, BOOL, CHAR, DECL, DEF, ELSE, ELSIF, END, EXIT, FALSE, FOR, HEAD, IF, INT, LIST, MOD, NEW, NIL, NILQ, NOT, OR, REF, RETURN, SKIP, TAIL, TRUE;
-terminal ID, INT_CONST, CHAR_CONST, STRING_LITERAL;
 terminal PLUS, MINUS, TIMES, DIV, HASH, EQ, NEQ, LT, GT, LEQ, GEQ;
 terminal LPAREN, RPAREN, LBRACKET, RBRACKET, COMMA, SEMICOLON, COLON, ASSIGN;
-terminal UPLUS, UMINUS;
 
-non terminal program;
-non terminal func_def;
-non terminal decl_list;
-non terminal stmt_list;
-non terminal header;
-non terminal opt_type;
-non terminal opt_formal_list;
-non terminal formal_list;
-non terminal formal;
-non terminal id_list_tail;
-non terminal type;
-non terminal func_decl;
-non terminal var_def;
-non terminal stmt;
-non terminal elsif_list;
-non terminal opt_else;
-non terminal simple;
-non terminal simple_list;
-non terminal call;
-non terminal opt_expr_list;
-non terminal expr_list;
-non terminal atom;
-non terminal expr;
+terminal String ID;
+terminal Integer INT_CONST;
+terminal Character CHAR_CONST;
+terminal String STRING_LITERAL;
+
+non terminal Program program;
+non terminal FuncDef func_def;
+non terminal List<Decl> decl_list;
+non terminal List<Stmt> stmt_list;
+non terminal Header header;
+non terminal Type opt_type;
+non terminal List<Formal> opt_formal_list;
+non terminal List<Formal> formal_list;
+non terminal Formal formal;
+non terminal List<String> id_list_tail;
+non terminal Type type;
+non terminal FuncDecl func_decl;
+non terminal VarDef var_def;
+non terminal Stmt stmt;
+non terminal List<Elsif> elsif_list;
+non terminal List<Stmt> opt_else;
+non terminal Simple simple;
+non terminal List<Simple> simple_list;
+non terminal CallExpr call;
+non terminal List<Expr> opt_expr_list;
+non terminal List<Expr> expr_list;
+non terminal Atom atom;
+non terminal Expr expr;
 
 precedence left OR;
 precedence left AND;
@@ -37,152 +45,236 @@ precedence nonassoc EQ, NEQ, LT, GT, LEQ, GEQ;
 precedence right HASH;
 precedence left PLUS, MINUS;
 precedence left TIMES, DIV, MOD;
-precedence right UPLUS, UMINUS;
 
 start with program;
 
 program
-  ::= func_def
+  ::= func_def:mainFunction
+        {: RESULT = new Program(mainFunction); :}
     ;
 
 func_def
-  ::= DEF header COLON decl_list stmt_list END
+  ::= DEF header:h COLON decl_list:d stmt_list:s END
+          {: RESULT = new FuncDef(h, d, s); :}
     ;
 
 decl_list
   ::=
-    | decl_list func_def
-    | decl_list func_decl
-    | decl_list var_def
+        {: RESULT = new ArrayList<>(); :}
+    | decl_list:list func_def:d
+        {: list.add(d); RESULT = list; :}
+    | decl_list:list func_decl:d
+        {: list.add(d); RESULT = list; :}
+    | decl_list:list var_def:d
+        {: list.add(d); RESULT = list; :}
     ;
 
 stmt_list
-  ::= stmt
-    | stmt_list stmt
+  ::= stmt:s
+        {: RESULT = new ArrayList<>(); RESULT.add(s); :}
+    | stmt_list:list stmt:s
+        {: list.add(s); RESULT = list; :}
     ;
 
 header
-  ::= opt_type ID LPAREN opt_formal_list RPAREN
+  ::= opt_type:returnType ID:name LPAREN opt_formal_list:parameters RPAREN
+        {: RESULT = new Header(returnType, name, parameters); :}
     ;
 
 opt_type
   ::=
-    | type
+        {: RESULT = null; :}
+    | type:t
+        {: RESULT = t; :}
     ;
 
 opt_formal_list
   ::=
-    | formal_list
+        {: RESULT = new ArrayList<>(); :}
+    | formal_list:list
+        {: RESULT = list; :}
     ;
 
 formal_list
-  ::= formal
-    | formal_list SEMICOLON formal
+  ::= formal:f
+        {: RESULT = new ArrayList<>(); RESULT.add(f); :}
+    | formal_list:list SEMICOLON formal:f
+        {: list.add(f); RESULT = list; :}
     ;
 
 formal
-  ::= type ID id_list_tail
-    | REF type ID id_list_tail
+  ::= type:t ID:name id_list_tail:names
+        {:
+            names.add(0, name);
+            RESULT = new Formal(false, t, names);
+        :}
+    | REF type:t ID:name id_list_tail:names
+        {:
+            names.add(0, name);
+            RESULT = new Formal(true, t, names);
+        :}
     ;
 
 id_list_tail
   ::=
-    | id_list_tail COMMA ID
+        {: RESULT = new ArrayList<>(); :}
+    | id_list_tail:list COMMA ID:name
+        {: list.add(name); RESULT = list; :}
     ;
 
 type
   ::= INT
+        {: RESULT = new IntType(); :}
     | BOOL
+        {: RESULT = new BoolType(); :}
     | CHAR
-    | type LBRACKET RBRACKET
-    | LIST LBRACKET type RBRACKET
+        {: RESULT = new CharType(); :}
+    | type:t LBRACKET RBRACKET
+        {: RESULT = new ArrayType(t); :}
+    | LIST LBRACKET type:t RBRACKET
+        {: RESULT = new ListType(t); :}
     ;
 
 func_decl
-  ::= DECL header
+  ::= DECL header:h
+        {: RESULT = new FuncDecl(h); :}
     ;
 
 var_def
-  ::= type ID id_list_tail
+  ::= type:t ID:name id_list_tail:names
+        {:
+            names.add(0, name);
+            RESULT = new VarDef(t, names);
+        :}
     ;
 
 stmt
-  ::= simple
+  ::= simple:s
+        {: RESULT = s; :}
     | EXIT
-    | RETURN expr
-    | IF expr COLON stmt_list elsif_list opt_else END
-    | FOR simple_list SEMICOLON expr SEMICOLON simple_list COLON stmt_list END
+        {: RESULT = new ExitStmt(); :}
+    | RETURN expr:e
+        {: RESULT = new ReturnStmt(e); :}
+    | IF expr:condition COLON stmt_list:thenBody elsif_list:elsifList opt_else:elseBody END
+        {: RESULT = new IfStmt(condition, thenBody, elsifList, elseBody); :}
+    | FOR simple_list:init SEMICOLON expr:condition SEMICOLON simple_list:update COLON stmt_list:body END
+        {: RESULT = new ForStmt(init, condition, update, body); :}
     ;
 
 elsif_list
   ::=
-    | elsif_list ELSIF expr COLON stmt_list
+        {: RESULT = new ArrayList<>(); :}
+    | elsif_list:list ELSIF expr:condition COLON stmt_list:body
+        {: list.add(new Elsif(condition, body)); RESULT = list; :}
     ;
 
 opt_else
   ::=
-    | ELSE COLON stmt_list
+        {: RESULT = new ArrayList<>(); :}
+    | ELSE COLON stmt_list:s
+        {: RESULT = s; :}
     ;
 
 simple
   ::= SKIP
-    | atom ASSIGN expr
-    | call
+        {: RESULT = new SkipStmt(); :}
+    | atom:target ASSIGN expr:value
+        {: RESULT = new AssignStmt(target, value); :}
+    | call:c
+        {: RESULT = new CallStmt(c); :}
     ;
 
 simple_list
-  ::= simple
-    | simple_list COMMA simple
+  ::= simple:s
+        {: RESULT = new ArrayList<>(); RESULT.add(s); :}
+    | simple_list:list COMMA simple:s
+        {: list.add(s); RESULT = list; :}
     ;
 
 call
-  ::= ID LPAREN opt_expr_list RPAREN
+  ::= ID:name LPAREN opt_expr_list:args RPAREN
+        {: RESULT = new CallExpr(name, args); :}
     ;
 
 opt_expr_list
   ::=
-    | expr_list
+        {: RESULT = new ArrayList<>(); :}
+    | expr_list:list {: RESULT = list; :}
     ;
 
 expr_list
-  ::= expr
-    | expr_list COMMA expr
+  ::= expr:e
+        {: RESULT = new ArrayList<>(); RESULT.add(e); :}
+    | expr_list:list COMMA expr:e
+        {: list.add(e); RESULT = list; :}
     ;
 
 atom
-  ::= ID
-    | STRING_LITERAL
-    | atom LBRACKET expr RBRACKET
-    | call
+  ::= ID:name
+        {: RESULT = new VarExpr(name); :}
+    | STRING_LITERAL:value
+        {: RESULT = new StringLiteral(value); :}
+    | atom:array LBRACKET expr:index RBRACKET
+        {: RESULT = new ArrayAccess(array, index); :}
+    | call:c
+        {: RESULT = c; :}
     ;
 
 expr
-  ::= atom
-    | INT_CONST
-    | CHAR_CONST
-    | LPAREN expr RPAREN
-    | PLUS expr %prec UPLUS
-    | MINUS expr %prec UMINUS
-    | expr PLUS expr
-    | expr MINUS expr
-    | expr TIMES expr
-    | expr DIV expr
-    | expr MOD expr
-    | expr EQ expr
-    | expr NEQ expr
-    | expr LT expr
-    | expr GT expr
-    | expr LEQ expr
-    | expr GEQ expr
+  ::= atom:e
+        {: RESULT = e; :}
+    | INT_CONST:value
+        {: RESULT = new IntConst(value); :}
+    | CHAR_CONST:value
+        {: RESULT = new CharConst(value); :}
+    | LPAREN expr:e RPAREN
+        {: RESULT = e; :}
+    | PLUS expr:e
+        {: RESULT = new UnaryExpr(UnaryOp.PLUS, e); :}
+    | MINUS expr:e
+        {: RESULT = new UnaryExpr(UnaryOp.MINUS, e); :}
+    | expr:left PLUS expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.ADD, left, right); :}
+    | expr:left MINUS expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.SUB, left, right); :}
+    | expr:left TIMES expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.MUL, left, right); :}
+    | expr:left DIV expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.DIV, left, right); :}
+    | expr:left MOD expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.MOD, left, right); :}
+    | expr:left EQ expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.EQ, left, right); :}
+    | expr:left NEQ expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.NEQ, left, right); :}
+    | expr:left LT expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.LT, left, right); :}
+    | expr:left GT expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.GT, left, right); :}
+    | expr:left LEQ expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.LEQ, left, right); :}
+    | expr:left GEQ expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.GEQ, left, right); :}
     | TRUE
+        {: RESULT = new BoolConst(true); :}
     | FALSE
-    | NOT expr
-    | expr AND expr
-    | expr OR expr
-    | NEW type LBRACKET expr RBRACKET
+        {: RESULT = new BoolConst(false); :}
+    | NOT expr:e
+        {: RESULT = new UnaryExpr(UnaryOp.NOT, e); :}
+    | expr:left AND expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.AND, left, right); :}
+    | expr:left OR expr:right
+        {: RESULT = new BinaryExpr(BinaryOp.OR, left, right); :}
+    | NEW type:t LBRACKET expr:size RBRACKET
+        {: RESULT = new NewArrayExpr(t, size); :}
     | NIL
-    | NILQ LPAREN expr RPAREN
-    | expr HASH expr
-    | HEAD LPAREN expr RPAREN
-    | TAIL LPAREN expr RPAREN
+        {: RESULT = new NilExpr(); :}
+    | NILQ LPAREN expr:e RPAREN
+        {: RESULT = new NilCheckExpr(e); :}
+    | expr:left HASH expr:right
+        {: RESULT = new HashExpr(left, right); :}
+    | HEAD LPAREN expr:e RPAREN
+        {: RESULT = new HeadExpr(e); :}
+    | TAIL LPAREN expr:e RPAREN
+        {: RESULT = new TailExpr(e); :}
     ;

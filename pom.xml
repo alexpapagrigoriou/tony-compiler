@@ -15,14 +15,19 @@
         <main.class>io.github.alexpapagre.${artifactId.clean}.Main</main.class>
         <jar.name>${project.artifactId}</jar.name>
 
+        <lombok.version>1.18.44</lombok.version>
         <jflex.version>1.9.1</jflex.version>
         <java-cup.version>11b-20160615-3</java-cup.version>
-        <!--
-        <asm.version>9.9</asm.version>
-        -->
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>de.jflex</groupId>
             <artifactId>jflex</artifactId>
@@ -34,26 +39,6 @@
             <artifactId>java-cup-runtime</artifactId>
             <version>${java-cup.version}</version>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>${asm.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-commons</artifactId>
-            <version>${asm.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm-util</artifactId>
-            <version>${asm.version}</version>
-        </dependency>
-        -->
     </dependencies>
 
     <build>
@@ -87,6 +72,13 @@
                 <version>3.15.0</version>
                 <configuration>
                     <release>${java.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
