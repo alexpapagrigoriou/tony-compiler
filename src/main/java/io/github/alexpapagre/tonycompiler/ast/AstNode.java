@@ -4,5 +4,4 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public abstract class AstNode {
-    public int line, column;
 }
