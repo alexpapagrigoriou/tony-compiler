@@ -1,8 +1,8 @@
-.classpath
-.factorypath
-.project
-.settings/
+/.classpath
+/.factorypath
+/.project
+/.settings/
 
-.idea/
+/.idea/
 
-target/
+/target/
