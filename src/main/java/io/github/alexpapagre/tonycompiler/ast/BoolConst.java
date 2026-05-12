@@ -1,8 +1,14 @@
 package io.github.alexpapagre.tonycompiler.ast;
 
+import io.github.alexpapagre.tonycompiler.visitor.Visitor;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class BoolConst extends Expr {
     private final boolean value;
+
+    @Override
+    public <T> T accept(Visitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }
