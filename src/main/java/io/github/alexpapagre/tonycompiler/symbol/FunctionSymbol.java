@@ -7,12 +7,12 @@ import lombok.Getter;
 
 @Getter
 public class FunctionSymbol extends Symbol {
-    private final List<VariableSymbol> parameters;
     private final Type returnType;
+    private final List<VariableSymbol> parameters;
 
-    public FunctionSymbol(String name, List<VariableSymbol> parameters, Type returnType) {
+    public FunctionSymbol(String name, Type returnType, List<VariableSymbol> parameters) {
         super(name);
-        this.parameters = parameters;
         this.returnType = returnType;
+        this.parameters = parameters;
     }
 }

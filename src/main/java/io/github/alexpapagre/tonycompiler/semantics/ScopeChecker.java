@@ -11,6 +11,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
     private final ScopeStack scopes = new ScopeStack();
 
     public ScopeChecker() {
+        BuiltinInstaller.install(scopes);
     }
 
     @Override
@@ -24,7 +25,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
             }
         }
 
-        FunctionSymbol function = new FunctionSymbol(name, parameters, node.getHeader().getReturnType());
+        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters);
 
         if (!scopes.declare(function)) {
             throw new SemanticException("Function already defined: " + name);

@@ -98,7 +98,7 @@ line_comment = "%"[^\n]*(\n)?
     "mod" { return createSymbol(Symbols.MOD); }
     "new" { return createSymbol(Symbols.NEW); }
     "nil" { return createSymbol(Symbols.NIL); }
-    "nilQ" { return createSymbol(Symbols.NILQ); }
+    "nil?" { return createSymbol(Symbols.NILQ); }
     "not" { return createSymbol(Symbols.NOT); }
     "or" { return createSymbol(Symbols.OR); }
     "ref" { return createSymbol(Symbols.REF); }
