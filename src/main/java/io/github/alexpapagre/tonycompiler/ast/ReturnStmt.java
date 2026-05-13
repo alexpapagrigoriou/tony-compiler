@@ -2,7 +2,9 @@ package io.github.alexpapagre.tonycompiler.ast;
 
 import io.github.alexpapagre.tonycompiler.visitor.Visitor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
 public class ReturnStmt extends Stmt {
     private final Expr expr;

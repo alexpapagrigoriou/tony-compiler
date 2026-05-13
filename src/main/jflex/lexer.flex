@@ -1,11 +1,11 @@
 package io.github.alexpapagre.tonycompiler;
 
+import io.github.alexpapagre.tonycompiler.lexer.LexerException;
 import java_cup.runtime.Symbol;
 
 %%
 
 %class Lexer
-%throws LexerException
 %unicode
 %line
 %column
@@ -18,7 +18,7 @@ import java_cup.runtime.Symbol;
 %{
     private int blockComments = 0;
 
-    private char resolveChar(String s) {
+    private char resolveChar(String s, int line) {
         if (s.length() == 1) {
             return s.charAt(0);
         }
@@ -32,17 +32,17 @@ import java_cup.runtime.Symbol;
             case '\'' -> '\'';
             case '"' -> '"';
             case 'x' -> (char) Integer.parseInt(s.substring(2), 16);
-            default -> throw new RuntimeException("Unknown escape sequence: " + s);
+            default -> throw new LexerException("Unknown escape sequence: " + s, line);
         };
     }
 
-    private String resolveString(String s) {
+    private String resolveString(String s, int line) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
         while (i < s.length()) {
             if (s.charAt(i) == '\\') {
                 int skip = s.charAt(i + 1) == 'x' ? 4 : 2;
-                sb.append(resolveChar(s.substring(i, i + skip)));
+                sb.append(resolveChar(s.substring(i, i + skip), line));
                 i += skip;
             } else {
                 sb.append(s.charAt(i++));
@@ -113,20 +113,20 @@ line_comment = "%"[^\n]*(\n)?
         try {
             return createSymbol(Symbols.INT_CONST, Integer.parseInt(yytext()));
         } catch (NumberFormatException e) {
-            throw new RuntimeException("Integer overflow '" + yytext() + "' at line " + (yyline + 1));
+            throw new LexerException("Integer overflow '" + yytext() + "'", yyline + 1);
         }
     }
 
     {char_const} {
         String s = yytext();
         s = s.substring(1, s.length() - 1);
-        return createSymbol(Symbols.CHAR_CONST, resolveChar(s));
+        return createSymbol(Symbols.CHAR_CONST, resolveChar(s, yyline + 1));
     }
 
     {string_literal} {
         String s = yytext();
         s = s.substring(1, s.length()-1);
-        return createSymbol(Symbols.STRING_LITERAL, resolveString(s));
+        return createSymbol(Symbols.STRING_LITERAL, resolveString(s, yyline + 1));
     }
 
     "+" { return createSymbol(Symbols.PLUS); }

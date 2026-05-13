@@ -1,14 +1,20 @@
 package io.github.alexpapagre.tonycompiler;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 import io.github.alexpapagre.tonycompiler.ast.Program;
+import io.github.alexpapagre.tonycompiler.semantics.SemanticAnalyzer;
 
 public class Main {
 
     public static void main(String[] args) {
+        Program program = getProgram(args);
+
+        new SemanticAnalyzer().analyze(program);
+    }
+
+    private static String extractFilename(String[] args) {
         if (args.length != 1) {
             System.err.println("Usage: java -jar tony-compiler.jar <file>");
             System.exit(1);
@@ -19,25 +25,24 @@ public class Main {
             System.exit(1);
         }
 
-        FileReader fileReader = null;
-        try {
-            fileReader = new FileReader(args[0]);
-        } catch (IOException e) {
-            System.err.println("Could not open file: " + args[0]);
-            System.exit(1);
-        }
+        return args[0];
+    }
 
-        Lexer lexer = new Lexer(fileReader);
-        Parser parser = new Parser(lexer);
-        Program program = null;
+    private static FileReader readFile(String filename) throws FileNotFoundException {
+        return new FileReader(filename);
+    }
+
+    private static Program parseSource(FileReader fileReader) throws Exception {
+        return (Program) new Parser(new Lexer(fileReader)).parse().value;
+    }
+
+    private static Program getProgram(String[] args) {
         try {
-            program = (Program) parser.parse().value;
-        } catch (LexerException e) {
+            return parseSource(readFile(extractFilename(args)));
+        } catch (Exception e) {
             System.err.println(e.getMessage());
             System.exit(1);
-        } catch (Exception e) {
-            System.err.println("Unexpected error: " + e.getMessage());
-            System.exit(1);
+            return null;
         }
     }
 }

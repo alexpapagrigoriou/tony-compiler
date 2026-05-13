@@ -2,7 +2,9 @@ package io.github.alexpapagre.tonycompiler.ast;
 
 import io.github.alexpapagre.tonycompiler.visitor.Visitor;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 @AllArgsConstructor
 public class NewArrayExpr extends Expr {
     private final Type type;
