@@ -173,4 +173,9 @@ public abstract class BaseVisitor<T> implements Visitor<T> {
     public T visit(ListType node) {
         return null;
     }
+
+    @Override
+    public T visit(NilType node) {
+        return null;
+    }
 }

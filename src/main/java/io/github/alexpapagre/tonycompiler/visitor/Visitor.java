@@ -71,4 +71,6 @@ public interface Visitor<T> {
     T visit(ArrayType node);
 
     T visit(ListType node);
+
+    T visit(NilType node);
 }
