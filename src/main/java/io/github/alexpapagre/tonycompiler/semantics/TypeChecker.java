@@ -53,12 +53,15 @@ public class TypeChecker extends TraversalVisitor<Type> {
             stmt.accept(this);
         }
 
+        if (!returnsCorrectType(node.getStatements(), currentReturnType)) {
+            throw new SemanticException("Incorrect return type");
+        }
+
         currentReturnType = previousReturnType;
 
         scopes.exitScope();
 
         return null;
-
     }
 
     @Override
@@ -393,5 +396,61 @@ public class TypeChecker extends TraversalVisitor<Type> {
         }
 
         return type.getClass().getSimpleName();
+    }
+
+    private boolean returnsCorrectType(List<Stmt> statements, Type returnType) {
+        if (returnType == null) {
+            for (Stmt stmt : statements) {
+                if (stmt instanceof ReturnStmt) {
+                    return false;
+                }
+            }
+
+            for (Stmt stmt : statements) {
+                if (stmt instanceof IfStmt ifStmt) {
+                    if (!returnsCorrectType(ifStmt.getThenBody(), returnType)) {
+                        return false;
+                    }
+
+                    for (Elsif elsif : ifStmt.getElsifList()) {
+                        if (!returnsCorrectType(elsif.getBody(), returnType)) {
+                            return false;
+                        }
+                    }
+
+                    if (!returnsCorrectType(ifStmt.getElseBody(), returnType)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        for (Stmt stmt : statements) {
+            if (stmt instanceof ReturnStmt returnStmt) {
+                return sameType(returnType, returnStmt.getExpr().accept(this));
+            }
+        }
+
+        for (Stmt stmt : statements) {
+            if (stmt instanceof IfStmt ifStmt) {
+                if (!returnsCorrectType(ifStmt.getThenBody(), returnType)) {
+                    return false;
+                }
+
+                for (Elsif elsif : ifStmt.getElsifList()) {
+                    if (!returnsCorrectType(elsif.getBody(), returnType)) {
+                        return false;
+                    }
+                }
+
+                if (!returnsCorrectType(ifStmt.getElseBody(), returnType)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }
