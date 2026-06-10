@@ -15,9 +15,10 @@
         <main.class>io.github.alexpapagre.${artifactId.clean}.Main</main.class>
         <jar.name>${project.artifactId}</jar.name>
 
-        <lombok.version>1.18.44</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <jflex.version>1.9.1</jflex.version>
         <java-cup.version>11b-20160615-3</java-cup.version>
+        <asm.version>9.10</asm.version>
     </properties>
 
     <dependencies>
@@ -38,6 +39,24 @@
             <groupId>com.github.vbmacher</groupId>
             <artifactId>java-cup-runtime</artifactId>
             <version>${java-cup.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>${asm.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>${asm.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>${asm.version}</version>
         </dependency>
     </dependencies>
 
@@ -142,6 +161,7 @@
                                 <filter>
                                     <artifact>*:*</artifact>
                                     <excludes>
+                                        <exclude>module-info.class</exclude>
                                         <exclude>META-INF/LICENSE.txt</exclude>
                                         <exclude>META-INF/NOTICE.txt</exclude>
                                         <exclude>META-INF/MANIFEST.MF</exclude>
