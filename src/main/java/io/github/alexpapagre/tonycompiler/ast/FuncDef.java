@@ -14,10 +14,10 @@ public class FuncDef extends Decl {
     private final List<Decl> declarations;
     private final List<Stmt> statements;
 
-    private FunctionSymbol symbol;
+    private FunctionSymbol function;
 
-    public void setSymbol(FunctionSymbol symbol) {
-        this.symbol = symbol;
+    public void setFunction(FunctionSymbol function) {
+        this.function = function;
     }
 
     @Override

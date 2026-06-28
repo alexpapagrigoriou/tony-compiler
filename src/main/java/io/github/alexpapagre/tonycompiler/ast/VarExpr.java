@@ -10,10 +10,10 @@ import lombok.RequiredArgsConstructor;
 public class VarExpr extends Atom {
     private final String name;
 
-    private VariableSymbol symbol;
+    private VariableSymbol variable;
 
-    public void setSymbol(VariableSymbol symbol) {
-        this.symbol = symbol;
+    public void setVariable(VariableSymbol variable) {
+        this.variable = variable;
     }
 
     @Override

@@ -8,7 +8,7 @@ public class VariableSymbol extends Symbol {
     private final boolean isRef;
     private final Type type;
 
-    private int localIndex = -1;
+    private int slot;
 
     public VariableSymbol(String name, boolean isRef, Type type) {
         super(name);
@@ -16,7 +16,7 @@ public class VariableSymbol extends Symbol {
         this.type = type;
     }
 
-    public void setLocalIndex(int localIndex) {
-        this.localIndex = localIndex;
+    public void setSlot(int slot) {
+        this.slot = slot;
     }
 }

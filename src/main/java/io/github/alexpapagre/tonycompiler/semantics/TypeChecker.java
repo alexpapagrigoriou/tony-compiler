@@ -19,7 +19,7 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(FuncDef node) {
-        FunctionSymbol function = node.getSymbol();
+        FunctionSymbol function = node.getFunction();
 
         for (Decl decl : node.getDeclarations()) {
             decl.accept(this);
@@ -108,7 +108,7 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(CallExpr node) {
-        FunctionSymbol function = node.getSymbol();
+        FunctionSymbol function = node.getFunction();
         List<VariableSymbol> params = function.getParameters();
         List<Expr> args = node.getArgs();
 
@@ -139,7 +139,9 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(VarExpr node) {
-        return node.getSymbol().getType();
+        Type result = node.getVariable().getType();
+        node.setType(result);
+        return result;
     }
 
     @Override
@@ -155,7 +157,9 @@ public class TypeChecker extends TraversalVisitor<Type> {
             throw new SemanticException("cannot index non-array type");
         }
 
-        return array.getElementType();
+        Type result = array.getElementType();
+        node.setType(result);
+        return result;
     }
 
     @Override
@@ -168,32 +172,41 @@ public class TypeChecker extends TraversalVisitor<Type> {
                 if (!(left instanceof IntType) || !(right instanceof IntType)) {
                     throw new SemanticException("arithmetic requires int");
                 }
-                return new IntType();
+                Type result = new IntType();
+                node.setType(result);
+                return result;
             }
 
             case AND, OR -> {
                 if (!(left instanceof BoolType) || !(right instanceof BoolType)) {
                     throw new SemanticException("logical requires bool");
                 }
-                return new BoolType();
+                Type result = new BoolType();
+                node.setType(result);
+                return result;
             }
 
             case EQ, NEQ -> {
                 if (!sameType(left, right)) {
                     throw new SemanticException("comparison requires same type");
                 }
-                return new BoolType();
+                Type result = new BoolType();
+                node.setType(result);
+                return result;
             }
 
             case LT, GT, LEQ, GEQ -> {
                 if (!(left instanceof IntType) || !(right instanceof IntType)) {
                     throw new SemanticException("comparison requires int");
                 }
-                return new BoolType();
+                Type result = new BoolType();
+                node.setType(result);
+                return result;
             }
 
             default -> throw new SemanticException("unknown operator");
         }
+
     }
 
     @Override
@@ -205,13 +218,17 @@ public class TypeChecker extends TraversalVisitor<Type> {
                 if (!(t instanceof IntType)) {
                     throw new SemanticException("unary requires int");
                 }
-                return new IntType();
+                Type result = new IntType();
+                node.setType(result);
+                return result;
             }
             case NOT -> {
                 if (!(t instanceof BoolType)) {
                     throw new SemanticException("not requires bool");
                 }
-                return new BoolType();
+                Type result = new BoolType();
+                node.setType(result);
+                return result;
             }
             default -> throw new SemanticException("unknown unary op");
         }

@@ -10,14 +10,14 @@ import lombok.RequiredArgsConstructor;
 public class FuncDecl extends Decl {
     private final Header header;
 
-    private FunctionSymbol symbol;
+    private FunctionSymbol function;
 
     @Override
     public <T> T accept(Visitor<T> visitor) {
         return visitor.visit(this);
     }
 
-    public void setSymbol(FunctionSymbol symbol) {
-        this.symbol = symbol;
+    public void setFunction(FunctionSymbol function) {
+        this.function = function;
     }
 }

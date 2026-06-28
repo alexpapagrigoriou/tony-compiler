@@ -13,10 +13,10 @@ public class CallExpr extends Atom {
     private final String name;
     private final List<Expr> args;
 
-    private FunctionSymbol symbol;
+    private FunctionSymbol function;
 
-    public void setSymbol(FunctionSymbol symbol) {
-        this.symbol = symbol;
+    public void setFunction(FunctionSymbol function) {
+        this.function = function;
     }
 
     @Override

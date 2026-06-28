@@ -30,7 +30,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
                     VariableSymbol parameter = new VariableSymbol(parameterName, formal.isRef(), formal.getType());
 
                     parameters.add(parameter);
-                    formal.getSymbols().add(parameter);
+                    formal.getVariables().add(parameter);
                 }
             }
 
@@ -49,7 +49,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
 
         scopes.declare(function);
 
-        node.setSymbol(function);
+        node.setFunction(function);
 
         scopes.enterScope();
 
@@ -95,7 +95,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
         function.setDeclared();
 
         scopes.declare(function);
-        node.setSymbol(function);
+        node.setFunction(function);
 
         return null;
     }
@@ -109,7 +109,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
                 throw new SemanticException("Variable already declared in this scope: " + name);
             }
 
-            node.getSymbols().add(variable);
+            node.getVariables().add(variable);
         }
 
         return null;
@@ -179,7 +179,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
             throw new SemanticException("Undefined variable: " + node.getName());
         }
 
-        node.setSymbol(variable);
+        node.setVariable(variable);
 
         return null;
     }
@@ -196,7 +196,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
             throw new SemanticException(node.getName() + " is not a function");
         }
 
-        node.setSymbol(function);
+        node.setFunction(function);
 
         for (Expr expr : node.getArgs()) {
             expr.accept(this);
