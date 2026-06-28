@@ -11,6 +11,7 @@ import io.github.alexpapagre.tonycompiler.visitor.TraversalVisitor;
 
 public class JavaAsmGenerator extends TraversalVisitor<Void> {
     private final String className;
+    private final String runtimePath;
 
     private ClassWriter cw;
     private MethodVisitor mv;
@@ -19,8 +20,9 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
     private FunctionSymbol currentFunction;
 
-    public JavaAsmGenerator(String className) {
+    public JavaAsmGenerator(String className, String runtimePath) {
         this.className = className;
+        this.runtimePath = runtimePath;
     }
 
     public byte[] generate(Program program) {
@@ -48,7 +50,8 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
         mv.visitCode();
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className, main.getName(), buildDescriptor(main), false);
+        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className,
+                main.getName(), buildDescriptor(main), false);
 
         mv.visitInsn(Opcodes.RETURN);
         mv.visitMaxs(0, 0);
@@ -164,8 +167,12 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
             arg.accept(this);
         }
 
-        mv.visitMethodInsn(Opcodes.INVOKESTATIC, className,
-                function.getName(), buildDescriptor(function), false);
+        if (function.isBuiltin()) {
+            emitRuntimeCall(function);
+        } else {
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC, className,
+                    function.getName(), buildDescriptor(function), false);
+        }
 
         return null;
     }
@@ -548,5 +555,11 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
         }
 
         throw new RuntimeException("Unsupported type: " + type);
+    }
+
+    private void emitRuntimeCall(FunctionSymbol function) {
+        mv.visitMethodInsn(
+                Opcodes.INVOKESTATIC, runtimePath,
+                function.getName(), buildDescriptor(function), false);
     }
 }

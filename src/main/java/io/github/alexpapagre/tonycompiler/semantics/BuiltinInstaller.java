@@ -1,6 +1,7 @@
 package io.github.alexpapagre.tonycompiler.semantics;
 
 import io.github.alexpapagre.tonycompiler.ast.*;
+import io.github.alexpapagre.tonycompiler.symbol.FunctionKind;
 import io.github.alexpapagre.tonycompiler.symbol.FunctionSymbol;
 import io.github.alexpapagre.tonycompiler.symbol.ScopeStack;
 import io.github.alexpapagre.tonycompiler.symbol.VariableSymbol;
@@ -34,7 +35,7 @@ public final class BuiltinInstaller {
     }
 
     private static FunctionSymbol function(String name, Type returnType, VariableSymbol... parameters) {
-        return new FunctionSymbol(name, returnType, List.of(parameters));
+        return new FunctionSymbol(name, returnType, List.of(parameters), FunctionKind.BUILTIN);
     }
 
     private static VariableSymbol parameter(String name, Type type) {

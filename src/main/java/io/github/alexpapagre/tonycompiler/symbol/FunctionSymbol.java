@@ -9,15 +9,17 @@ import lombok.Getter;
 public class FunctionSymbol extends Symbol {
     private final Type returnType;
     private final List<VariableSymbol> parameters;
+    private final FunctionKind kind;
 
     private boolean declared = false;
     private boolean defined = false;;
 
-    public FunctionSymbol(String name, Type returnType, List<VariableSymbol> parameters) {
+    public FunctionSymbol(String name, Type returnType, List<VariableSymbol> parameters, FunctionKind kind) {
         super(name);
 
         this.returnType = returnType;
         this.parameters = parameters;
+        this.kind = kind;
     }
 
     public void setDeclared() {
@@ -26,5 +28,9 @@ public class FunctionSymbol extends Symbol {
 
     public void setDefined() {
         this.defined = true;
+    }
+
+    public boolean isBuiltin() {
+        return kind == FunctionKind.BUILTIN;
     }
 }
