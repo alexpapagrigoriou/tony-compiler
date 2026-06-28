@@ -2,12 +2,12 @@ package io.github.alexpapagre.tonycompiler.semantics;
 
 import io.github.alexpapagre.tonycompiler.ast.Program;
 
-public class SemanticAnalyzer {
+public final class SemanticAnalyzer {
 
-    public SemanticAnalyzer() {
+    private SemanticAnalyzer() {
     }
 
-    public void analyze(Program program) {
+    public static void analyze(Program program) {
         program.accept(new ScopeChecker());
         program.accept(new TypeChecker());
     }
