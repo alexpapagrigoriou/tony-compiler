@@ -1,13 +1,20 @@
 package io.github.alexpapagre.tonycompiler.ast;
 
+import io.github.alexpapagre.tonycompiler.symbol.VariableSymbol;
 import io.github.alexpapagre.tonycompiler.visitor.Visitor;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class VarExpr extends Atom {
     private final String name;
+
+    private VariableSymbol symbol;
+
+    public void setSymbol(VariableSymbol symbol) {
+        this.symbol = symbol;
+    }
 
     @Override
     public <T> T accept(Visitor<T> visitor) {

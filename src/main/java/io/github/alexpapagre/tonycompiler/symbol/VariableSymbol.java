@@ -8,9 +8,15 @@ public class VariableSymbol extends Symbol {
     private final boolean isRef;
     private final Type type;
 
+    private int localIndex = -1;
+
     public VariableSymbol(String name, boolean isRef, Type type) {
         super(name);
         this.isRef = isRef;
         this.type = type;
+    }
+
+    public void setLocalIndex(int localIndex) {
+        this.localIndex = localIndex;
     }
 }

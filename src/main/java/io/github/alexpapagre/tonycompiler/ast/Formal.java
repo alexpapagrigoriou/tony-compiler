@@ -1,17 +1,21 @@
 package io.github.alexpapagre.tonycompiler.ast;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import io.github.alexpapagre.tonycompiler.symbol.VariableSymbol;
 import io.github.alexpapagre.tonycompiler.visitor.Visitor;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Formal extends AstNode {
     private final boolean isRef;
     private final Type type;
     private final List<String> names;
+
+    private final List<VariableSymbol> symbols = new ArrayList<>();
 
     @Override
     public <T> T accept(Visitor<T> visitor) {

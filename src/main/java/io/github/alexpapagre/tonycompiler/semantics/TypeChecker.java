@@ -8,12 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TypeChecker extends TraversalVisitor<Type> {
-    private final ScopeStack scopes = new ScopeStack();
-
-    private Type currentReturnType;
 
     public TypeChecker() {
-        BuiltinInstaller.install(scopes);
     }
 
     @Override
@@ -23,27 +19,7 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(FuncDef node) {
-        String name = node.getHeader().getName();
-
-        List<VariableSymbol> parameters = new ArrayList<>();
-        for (Formal formal : node.getHeader().getParameters()) {
-            for (String parameterName : formal.getNames()) {
-                parameters.add(new VariableSymbol(parameterName, formal.isRef(), formal.getType()));
-            }
-        }
-
-        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters);
-
-        scopes.declare(function);
-
-        scopes.enterScope();
-
-        for (VariableSymbol parameter : parameters) {
-            scopes.declare(parameter);
-        }
-
-        Type previousReturnType = currentReturnType;
-        currentReturnType = node.getHeader().getReturnType();
+        FunctionSymbol function = node.getSymbol();
 
         for (Decl decl : node.getDeclarations()) {
             decl.accept(this);
@@ -53,53 +29,17 @@ public class TypeChecker extends TraversalVisitor<Type> {
             stmt.accept(this);
         }
 
-        if (!returnsCorrectType(node.getStatements(), currentReturnType)) {
-            throw new SemanticException("Incorrect return type");
-        }
-
-        currentReturnType = previousReturnType;
-
-        scopes.exitScope();
-
         return null;
     }
 
     @Override
     public Type visit(FuncDecl node) {
-        String name = node.getHeader().getName();
-
-        List<VariableSymbol> parameters = new ArrayList<>();
-        for (Formal formal : node.getHeader().getParameters()) {
-            for (String parameterName : formal.getNames()) {
-                parameters.add(new VariableSymbol(parameterName, formal.isRef(), formal.getType()));
-            }
-        }
-
-        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters);
-
-        scopes.declare(function);
-
         return null;
     }
 
     @Override
     public Type visit(VarDef node) {
-        for (String name : node.getNames()) {
-            scopes.declare(new VariableSymbol(name, false, node.getType()));
-        }
-
         return null;
-    }
-
-    @Override
-    public Type visit(Elsif node) {
-        Type cond = node.getCondition().accept(this);
-
-        if (!(cond instanceof BoolType)) {
-            throw new SemanticException("elsif condition requires bool");
-        }
-
-        return super.visit(node);
     }
 
     @Override
@@ -108,8 +48,8 @@ public class TypeChecker extends TraversalVisitor<Type> {
         Type right = node.getValue().accept(this);
 
         if (!sameType(left, right)) {
-            throw new SemanticException("Type mismatch in assignment: expected " + typeToString(left) + " but found "
-                    + typeToString(right));
+            throw new SemanticException("Type mismatch in assignment: expected " + typeToString(left) +
+                    " but found " + typeToString(right));
         }
 
         return null;
@@ -123,7 +63,29 @@ public class TypeChecker extends TraversalVisitor<Type> {
             throw new SemanticException("if condition requires bool");
         }
 
-        return super.visit(node);
+        for (Stmt stmt : node.getThenBody())
+            stmt.accept(this);
+        for (Elsif e : node.getElsifList())
+            e.accept(this);
+        for (Stmt stmt : node.getElseBody())
+            stmt.accept(this);
+
+        return null;
+    }
+
+    @Override
+    public Type visit(Elsif node) {
+        Type cond = node.getCondition().accept(this);
+
+        if (!(cond instanceof BoolType)) {
+            throw new SemanticException("elsif condition requires bool");
+        }
+
+        for (Stmt stmt : node.getBody()) {
+            stmt.accept(this);
+        }
+
+        return null;
     }
 
     @Override
@@ -134,100 +96,41 @@ public class TypeChecker extends TraversalVisitor<Type> {
             throw new SemanticException("for condition requires bool");
         }
 
-        return super.visit(node);
-    }
+        for (Simple s : node.getInit())
+            s.accept(this);
+        for (Simple s : node.getUpdate())
+            s.accept(this);
+        for (Stmt stmt : node.getBody())
+            stmt.accept(this);
 
-    @Override
-    public Type visit(BinaryExpr node) {
-        Type left = node.getLeft().accept(this);
-        Type right = node.getRight().accept(this);
-
-        switch (node.getOp()) {
-            case ADD:
-            case SUB:
-            case MUL:
-            case DIV:
-            case MOD:
-                if (!(left instanceof IntType) || !(right instanceof IntType)) {
-                    throw new SemanticException("arithmetic requires int");
-                }
-                return new IntType();
-            case AND:
-            case OR:
-                if (!(left instanceof BoolType) || !(right instanceof BoolType)) {
-                    throw new SemanticException("logical requires bool");
-                }
-                return new BoolType();
-            case EQ:
-            case NEQ:
-                if (!sameType(left, right)) {
-                    throw new SemanticException("Comparison operands must have same type");
-                }
-                return new BoolType();
-            case LT:
-            case GT:
-            case LEQ:
-            case GEQ:
-                if (!(left instanceof IntType) || !(right instanceof IntType)) {
-                    throw new SemanticException("comparison requires int");
-                }
-                return new BoolType();
-            default:
-                throw new SemanticException("Unknown binary operator");
-        }
-    }
-
-    @Override
-    public Type visit(UnaryExpr node) {
-        Type exprType = node.getExpr().accept(this);
-
-        switch (node.getOp()) {
-            case PLUS:
-            case MINUS:
-                if (!(exprType instanceof IntType)) {
-                    throw new SemanticException("unary arithmetic requires int");
-                }
-                return new IntType();
-            case NOT:
-                if (!(exprType instanceof BoolType)) {
-                    throw new SemanticException("logical not requires bool");
-                }
-                return new BoolType();
-            default:
-                throw new SemanticException("Unknown unary operator");
-        }
+        return null;
     }
 
     @Override
     public Type visit(CallExpr node) {
-        Symbol symbol = scopes.resolve(node.getName());
-
-        if (!(symbol instanceof FunctionSymbol function)) {
-            throw new SemanticException(node.getName() + " is not a function");
-        }
-
-        List<VariableSymbol> parameters = function.getParameters();
+        FunctionSymbol function = node.getSymbol();
+        List<VariableSymbol> params = function.getParameters();
         List<Expr> args = node.getArgs();
 
-        if (parameters.size() != args.size()) {
-            throw new SemanticException("Wrong number of arguments in call to " + node.getName());
+        if (params.size() != args.size()) {
+            throw new SemanticException("Wrong number of arguments in call to " + function.getName());
         }
 
-        for (int i = 0; i < parameters.size(); i++) {
-            VariableSymbol parameter = parameters.get(i);
+        for (int i = 0; i < params.size(); i++) {
+            VariableSymbol param = params.get(i);
             Expr arg = args.get(i);
 
-            Type expected = parameter.getType();
             Type actual = arg.accept(this);
+            Type expected = param.getType();
 
-            if (parameter.isRef()) {
+            if (param.isRef()) {
                 if (!(arg instanceof VarExpr) && !(arg instanceof ArrayAccess)) {
                     throw new SemanticException("ref parameter requires lvalue");
                 }
             }
 
             if (!sameType(expected, actual)) {
-                throw new SemanticException("Argument type mismatch in call to " + node.getName());
+                throw new SemanticException("Argument type mismatch in call to " + function.getName());
             }
         }
 
@@ -236,13 +139,7 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(VarExpr node) {
-        Symbol symbol = scopes.resolve(node.getName());
-
-        if (!(symbol instanceof VariableSymbol variable)) {
-            throw new SemanticException("Undefined variable: " + node.getName());
-        }
-
-        return variable.getType();
+        return node.getSymbol().getType();
     }
 
     @Override
@@ -255,10 +152,69 @@ public class TypeChecker extends TraversalVisitor<Type> {
         }
 
         if (!(arrayType instanceof ArrayType array)) {
-            throw new SemanticException("cannot index value of type " + typeToString(arrayType));
+            throw new SemanticException("cannot index non-array type");
         }
 
         return array.getElementType();
+    }
+
+    @Override
+    public Type visit(BinaryExpr node) {
+        Type left = node.getLeft().accept(this);
+        Type right = node.getRight().accept(this);
+
+        switch (node.getOp()) {
+            case ADD, SUB, MUL, DIV, MOD -> {
+                if (!(left instanceof IntType) || !(right instanceof IntType)) {
+                    throw new SemanticException("arithmetic requires int");
+                }
+                return new IntType();
+            }
+
+            case AND, OR -> {
+                if (!(left instanceof BoolType) || !(right instanceof BoolType)) {
+                    throw new SemanticException("logical requires bool");
+                }
+                return new BoolType();
+            }
+
+            case EQ, NEQ -> {
+                if (!sameType(left, right)) {
+                    throw new SemanticException("comparison requires same type");
+                }
+                return new BoolType();
+            }
+
+            case LT, GT, LEQ, GEQ -> {
+                if (!(left instanceof IntType) || !(right instanceof IntType)) {
+                    throw new SemanticException("comparison requires int");
+                }
+                return new BoolType();
+            }
+
+            default -> throw new SemanticException("unknown operator");
+        }
+    }
+
+    @Override
+    public Type visit(UnaryExpr node) {
+        Type t = node.getExpr().accept(this);
+
+        switch (node.getOp()) {
+            case PLUS, MINUS -> {
+                if (!(t instanceof IntType)) {
+                    throw new SemanticException("unary requires int");
+                }
+                return new IntType();
+            }
+            case NOT -> {
+                if (!(t instanceof BoolType)) {
+                    throw new SemanticException("not requires bool");
+                }
+                return new BoolType();
+            }
+            default -> throw new SemanticException("unknown unary op");
+        }
     }
 
     @Override
@@ -267,13 +223,13 @@ public class TypeChecker extends TraversalVisitor<Type> {
     }
 
     @Override
-    public Type visit(CharConst node) {
-        return new CharType();
+    public Type visit(BoolConst node) {
+        return new BoolType();
     }
 
     @Override
-    public Type visit(BoolConst node) {
-        return new BoolType();
+    public Type visit(CharConst node) {
+        return new CharType();
     }
 
     @Override
@@ -283,10 +239,10 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(NewArrayExpr node) {
-        Type sizeType = node.getSize().accept(this);
+        Type size = node.getSize().accept(this);
 
-        if (!(sizeType instanceof IntType)) {
-            throw new SemanticException("array size requires int");
+        if (!(size instanceof IntType)) {
+            throw new SemanticException("array size must be int");
         }
 
         return new ArrayType(node.getType());
@@ -299,9 +255,9 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(NilCheckExpr node) {
-        Type exprType = node.getExpr().accept(this);
+        Type t = node.getExpr().accept(this);
 
-        if (!(exprType instanceof ListType) && !(exprType instanceof NilType)) {
+        if (!(t instanceof ListType) && !(t instanceof NilType)) {
             throw new SemanticException("nil? expects list");
         }
 
@@ -314,11 +270,11 @@ public class TypeChecker extends TraversalVisitor<Type> {
         Type tail = node.getRight().accept(this);
 
         if (!(tail instanceof ListType list)) {
-            throw new SemanticException("Right operand of # must be a list");
+            throw new SemanticException("right operand must be list");
         }
 
         if (!sameType(head, list.getElementType())) {
-            throw new SemanticException("Head type does not match list element type");
+            throw new SemanticException("type mismatch in list construction");
         }
 
         return tail;
@@ -326,9 +282,9 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(HeadExpr node) {
-        Type exprType = node.getExpr().accept(this);
+        Type t = node.getExpr().accept(this);
 
-        if (!(exprType instanceof ListType list)) {
+        if (!(t instanceof ListType list)) {
             throw new SemanticException("head expects list");
         }
 
@@ -337,9 +293,9 @@ public class TypeChecker extends TraversalVisitor<Type> {
 
     @Override
     public Type visit(TailExpr node) {
-        Type exprType = node.getExpr().accept(this);
+        Type t = node.getExpr().accept(this);
 
-        if (!(exprType instanceof ListType list)) {
+        if (!(t instanceof ListType list)) {
             throw new SemanticException("tail expects list");
         }
 
@@ -396,61 +352,5 @@ public class TypeChecker extends TraversalVisitor<Type> {
         }
 
         return type.getClass().getSimpleName();
-    }
-
-    private boolean returnsCorrectType(List<Stmt> statements, Type returnType) {
-        if (returnType == null) {
-            for (Stmt stmt : statements) {
-                if (stmt instanceof ReturnStmt) {
-                    return false;
-                }
-            }
-
-            for (Stmt stmt : statements) {
-                if (stmt instanceof IfStmt ifStmt) {
-                    if (!returnsCorrectType(ifStmt.getThenBody(), returnType)) {
-                        return false;
-                    }
-
-                    for (Elsif elsif : ifStmt.getElsifList()) {
-                        if (!returnsCorrectType(elsif.getBody(), returnType)) {
-                            return false;
-                        }
-                    }
-
-                    if (!returnsCorrectType(ifStmt.getElseBody(), returnType)) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        for (Stmt stmt : statements) {
-            if (stmt instanceof ReturnStmt returnStmt) {
-                return sameType(returnType, returnStmt.getExpr().accept(this));
-            }
-        }
-
-        for (Stmt stmt : statements) {
-            if (stmt instanceof IfStmt ifStmt) {
-                if (!returnsCorrectType(ifStmt.getThenBody(), returnType)) {
-                    return false;
-                }
-
-                for (Elsif elsif : ifStmt.getElsifList()) {
-                    if (!returnsCorrectType(elsif.getBody(), returnType)) {
-                        return false;
-                    }
-                }
-
-                if (!returnsCorrectType(ifStmt.getElseBody(), returnType)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 }

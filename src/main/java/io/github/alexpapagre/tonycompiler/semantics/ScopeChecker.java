@@ -18,30 +18,46 @@ public class ScopeChecker extends TraversalVisitor<Void> {
     public Void visit(FuncDef node) {
         String name = node.getHeader().getName();
 
-        List<VariableSymbol> parameters = new ArrayList<>();
-        for (Formal formal : node.getHeader().getParameters()) {
-            for (String parameterName : formal.getNames()) {
-                parameters.add(new VariableSymbol(parameterName, formal.isRef(), formal.getType()));
+        Symbol existing = scopes.resolve(name);
+
+        FunctionSymbol function;
+
+        if (existing == null) {
+            List<VariableSymbol> parameters = new ArrayList<>();
+
+            for (Formal formal : node.getHeader().getParameters()) {
+                for (String parameterName : formal.getNames()) {
+                    VariableSymbol parameter = new VariableSymbol(parameterName, formal.isRef(), formal.getType());
+
+                    parameters.add(parameter);
+                    formal.getSymbols().add(parameter);
+                }
             }
+
+            function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters);
+        } else if (existing instanceof FunctionSymbol fs) {
+            function = fs;
+
+            if (function.isDefined()) {
+                throw new SemanticException("Function already defined: " + name);
+            }
+        } else {
+            throw new SemanticException(name + " is not a function");
         }
 
-        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters);
+        function.setDefined();
 
-        if (!scopes.declare(function)) {
-            throw new SemanticException("Function already defined: " + name);
-        }
+        scopes.declare(function);
+
+        node.setSymbol(function);
 
         scopes.enterScope();
 
-        for (VariableSymbol parameter : parameters) {
+        for (VariableSymbol parameter : function.getParameters()) {
             if (!scopes.declare(parameter)) {
                 throw new SemanticException("Duplicate parameter: " + parameter.getName());
             }
         }
-
-        node.getHeader().accept(this);
-
-        node.getHeader().accept(this);
 
         for (Decl decl : node.getDeclarations()) {
             decl.accept(this);
@@ -58,6 +74,29 @@ public class ScopeChecker extends TraversalVisitor<Void> {
 
     @Override
     public Void visit(FuncDecl node) {
+        String name = node.getHeader().getName();
+
+        Symbol existing = scopes.resolve(name);
+
+        if (existing != null) {
+            throw new SemanticException("Function already declared: " + name);
+        }
+
+        List<VariableSymbol> parameters = new ArrayList<>();
+
+        for (Formal formal : node.getHeader().getParameters()) {
+            for (String parameter : formal.getNames()) {
+                parameters.add(new VariableSymbol(parameter, formal.isRef(), formal.getType()));
+            }
+        }
+
+        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters);
+
+        function.setDeclared();
+
+        scopes.declare(function);
+        node.setSymbol(function);
+
         return null;
     }
 
@@ -69,6 +108,8 @@ public class ScopeChecker extends TraversalVisitor<Void> {
             if (!scopes.declare(variable)) {
                 throw new SemanticException("Variable already declared in this scope: " + name);
             }
+
+            node.getSymbols().add(variable);
         }
 
         return null;
@@ -133,9 +174,12 @@ public class ScopeChecker extends TraversalVisitor<Void> {
 
     @Override
     public Void visit(VarExpr node) {
-        if (scopes.resolve(node.getName()) == null) {
+        Symbol symbol = scopes.resolve(node.getName());
+        if (!(symbol instanceof VariableSymbol variable)) {
             throw new SemanticException("Undefined variable: " + node.getName());
         }
+
+        node.setSymbol(variable);
 
         return null;
     }
@@ -148,9 +192,11 @@ public class ScopeChecker extends TraversalVisitor<Void> {
             throw new SemanticException("Undefined function: " + node.getName());
         }
 
-        if (!(symbol instanceof FunctionSymbol)) {
+        if (!(symbol instanceof FunctionSymbol function)) {
             throw new SemanticException(node.getName() + " is not a function");
         }
+
+        node.setSymbol(function);
 
         for (Expr expr : node.getArgs()) {
             expr.accept(this);
