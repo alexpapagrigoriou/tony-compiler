@@ -11,7 +11,6 @@ import io.github.alexpapagrigoriou.tonycompiler.symbol.BuiltinClass;
 
 public final class CodeGenerator {
     private static final String OUT_DIR = "out";
-    private static final String CLASS_NAME = "Main";
 
     private static final String RUNTIME_PACKAGE = "io/github/alexpapagrigoriou/tonycompiler/runtime/";
     private static final String LIST_NAME = "TonyList";
@@ -19,23 +18,26 @@ public final class CodeGenerator {
     private CodeGenerator() {
     }
 
-    public static void generate(Program program) {
+    public static void generate(Program program, String outputName) {
         try {
             Path outDir = Path.of(OUT_DIR);
             Files.createDirectories(outDir);
 
-            byte[] bytecode = new JavaAsmGenerator(CLASS_NAME, RUNTIME_PACKAGE, LIST_NAME).generate(program);
+            byte[] bytecode = new JavaAsmGenerator(outputName, RUNTIME_PACKAGE, LIST_NAME).generate(program);
+            Files.write(outDir.resolve(outputName + ".class"), bytecode);
 
-            Files.write(outDir.resolve(CLASS_NAME + ".class"), bytecode);
-
-            copyClass(outDir, RUNTIME_PACKAGE + LIST_NAME + ".class");
-
-            for (BuiltinClass builtin : BuiltinClass.values()) {
-                copyClass(outDir, RUNTIME_PACKAGE + builtin.getName() + ".class");
-            }
+            copyRuntime(outDir);
         } catch (IOException e) {
             System.err.println("Failed to write bytecode to file!");
             System.exit(1);
+        }
+    }
+
+    private static void copyRuntime(Path outDir) {
+        copyClass(outDir, RUNTIME_PACKAGE + LIST_NAME + ".class");
+
+        for (BuiltinClass builtin : BuiltinClass.values()) {
+            copyClass(outDir, RUNTIME_PACKAGE + builtin.getName() + ".class");
         }
     }
 
@@ -45,6 +47,7 @@ public final class CodeGenerator {
                 if (in == null) {
                     throw new RuntimeException(classPath + " not found in classpath");
                 }
+
                 Path target = outDir.resolve(classPath);
                 Files.createDirectories(target.getParent());
                 Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
