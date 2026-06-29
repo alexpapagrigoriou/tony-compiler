@@ -4,7 +4,7 @@
 
 ## Language Specification
 
-The full Tony language specification (in Greek) is available in [spec.pdf](spec.pdf).
+The full Tony language specification (in Greek) is available in [the language specification](docs/tony-spec.pdf).
 
 ## Build the Compiler
 
