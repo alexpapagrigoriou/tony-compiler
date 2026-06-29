@@ -160,6 +160,18 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
     }
 
     @Override
+    public Void visit(ExitStmt node) {
+        mv.visitInsn(Opcodes.RETURN);
+        return null;
+    }
+
+    @Override
+    public Void visit(NilExpr node) {
+        mv.visitInsn(Opcodes.ACONST_NULL);
+        return null;
+    }
+
+    @Override
     public Void visit(CallExpr node) {
         FunctionSymbol function = node.getFunction();
 
