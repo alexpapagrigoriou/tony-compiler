@@ -2,10 +2,21 @@
 
  A compiler for the Tony programming language that generates JVM bytecode.
 
-## Build
+## Build the Compiler
+
+Before compiling any Tony source files, build the compiler jar once:
+
+```bash
+./tony.sh compile
+```
+
+Or manually:
+
 ```bash
 ./mvnw clean package
 ```
+
+> Run this again only when you make changes to the compiler itself.
 
 ## Usage
 
@@ -13,7 +24,7 @@
 
 #### Build a Tony source file
 ```bash
-./tony.sh build <file>
+./tony.sh build <file.tony>
 ```
 
 #### Run the compiled program
@@ -36,7 +47,7 @@
 
 #### Compile a Tony source file
 ```bash
-java -jar target/tony-compiler.jar <file>
+java -jar target/tony-compiler.jar <file.tony>
 ```
 
 #### Run the compiled program
