@@ -2,8 +2,8 @@
 
 set -e
 
-CMD=$1
 OUT=out
+JAR=target/tony-compiler.jar
 
 usage() {
     echo "Usage:"
@@ -13,7 +13,16 @@ usage() {
     exit 1
 }
 
+CMD=$1
+
 case "$CMD" in
+compile)
+    if [ "$#" -ne 1 ]; then
+        echo "Error: compile takes no arguments"
+        usage
+    fi
+    ./mvnw -q clean package
+    ;;
 build)
     if [ $# -ne 2 ]; then
         echo "Error: build requires exactly 1 argument"
@@ -27,13 +36,16 @@ build)
         exit 1
     fi
 
+    if [ ! -f "$JAR" ]; then
+        echo "Error: '$JAR' not found. Run './tony.sh compile' first."
+        exit 1
+    fi
+
     rm -rf $OUT
     mkdir -p "$OUT"
 
-    ./mvnw -q clean package
-    java -jar target/tony-compiler.jar "$FILE"
+    java -jar "$JAR" "$FILE"
     ;;
-
 run)
     if [ "$#" -ne 1 ]; then
         echo "Error: run takes no arguments"
@@ -52,7 +64,6 @@ run)
 
     java -cp "$OUT" Main
     ;;
-
 clean)
     if [ "$#" -ne 1 ]; then
         echo "Error: clean takes no arguments"
@@ -61,7 +72,6 @@ clean)
 
     rm -rf "$OUT"
     ;;
-
 *)
     usage
     ;;
