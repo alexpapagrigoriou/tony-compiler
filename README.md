@@ -28,13 +28,17 @@ Or manually:
 
 #### Build a Tony source file
 ```bash
-./tony.sh build <file.tony>
+./tony.sh build <inputFile.tony> [-o <outputName>]
 ```
+
+If `-o <outputName>` is not provided, the generated class name defaults to `Main`.
 
 #### Run the compiled program
 ```bash
-./tony.sh run
+./tony.sh run [<className>]
 ```
+
+If `<className>` is not provided, the program defaults to running `Main`.
 
 #### Clean the output directory
 ```bash
@@ -47,16 +51,25 @@ Or manually:
 ./tony.sh run
 ```
 
+or
+
+```bash
+./tony.sh build src/main/resources/tony-samples/reverse.tony -o Reverse
+./tony.sh run Reverse
+```
+
 ### Manually
 
 #### Compile a Tony source file
 ```bash
-java -jar target/tony-compiler.jar <file.tony>
+java -jar target/tony-compiler.jar <file.tony> [-o <outputName>]
 ```
+
+If `-o <outputName>` is not provided, the generated class name defaults to `Main`.
 
 #### Run the compiled program
 ```bash
-java -cp out Main
+java -cp out <className>
 ```
 
 #### Clean the output directory
@@ -70,6 +83,9 @@ java -jar target/tony-compiler.jar src/main/resources/tony-samples/reverse.tony
 java -cp out Main
 ```
 
-## Output
+or
 
-Compiled classes are written to the `out/` directory and can be run with `./tony.sh run` or `java -cp out Main`.
+```bash
+java -jar target/tony-compiler.jar src/main/resources/tony-samples/reverse.tony -o Reverse
+java -cp out Reverse
+```
