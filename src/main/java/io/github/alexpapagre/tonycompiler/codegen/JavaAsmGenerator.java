@@ -64,9 +64,12 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
     @Override
     public Void visit(FuncDef node) {
+        MethodVisitor savedMv = mv;
+        FunctionSymbol savedFunction = currentFunction;
+        int savedNextLocal = nextLocal;
+
         FunctionSymbol function = node.getFunction();
         currentFunction = function;
-
         nextLocal = 0;
 
         for (VariableSymbol param : function.getParameters()) {
@@ -86,9 +89,13 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
             s.accept(this);
         }
 
-        if (function.getReturnType() instanceof IntType) {
+        Type returnType = function.getReturnType();
+        if (returnType instanceof IntType || returnType instanceof BoolType) {
             mv.visitInsn(Opcodes.ICONST_0);
             mv.visitInsn(Opcodes.IRETURN);
+        } else if (returnType instanceof ArrayType || returnType instanceof CharType) {
+            mv.visitInsn(Opcodes.ACONST_NULL);
+            mv.visitInsn(Opcodes.ARETURN);
         } else {
             mv.visitInsn(Opcodes.RETURN);
         }
@@ -96,7 +103,9 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
         mv.visitMaxs(0, 0);
         mv.visitEnd();
 
-        currentFunction = null;
+        mv = savedMv;
+        currentFunction = savedFunction;
+        nextLocal = savedNextLocal;
 
         return null;
     }
@@ -211,6 +220,11 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
                 node.getLeft().accept(this);
                 node.getRight().accept(this);
                 mv.visitInsn(Opcodes.IDIV);
+            }
+            case MOD -> {
+                node.getLeft().accept(this);
+                node.getRight().accept(this);
+                mv.visitInsn(Opcodes.IREM);
             }
 
             case EQ -> {
@@ -352,6 +366,8 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
                 mv.visitLabel(endLabel);
             }
+
+            default -> throw new RuntimeException("Unsupported binary operator: " + node.getOp());
         }
 
         return null;
