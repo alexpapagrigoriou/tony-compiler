@@ -2,6 +2,10 @@
 
  A compiler for the Tony programming language that generates JVM bytecode.
 
+## Language Specification
+
+The full Tony language specification (in Greek) is available in [spec.pdf](spec.pdf).
+
 ## Build the Compiler
 
 Before compiling any Tony source files, build the compiler jar once:
