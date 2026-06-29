@@ -419,6 +419,28 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
     }
 
     @Override
+    public Void visit(StringLiteral node) {
+        char[] chars = node.getValue().toCharArray();
+
+        mv.visitLdcInsn(chars.length + 1);
+        mv.visitIntInsn(Opcodes.NEWARRAY, Opcodes.T_CHAR);
+
+        for (int i = 0; i < chars.length; i++) {
+            mv.visitInsn(Opcodes.DUP);
+            mv.visitLdcInsn(i);
+            mv.visitLdcInsn((int) chars[i]);
+            mv.visitInsn(Opcodes.CASTORE);
+        }
+
+        mv.visitInsn(Opcodes.DUP);
+        mv.visitLdcInsn(chars.length);
+        mv.visitLdcInsn(0);
+        mv.visitInsn(Opcodes.CASTORE);
+
+        return null;
+    }
+
+    @Override
     public Void visit(IfStmt node) {
         Label endLabel = new Label();
 
