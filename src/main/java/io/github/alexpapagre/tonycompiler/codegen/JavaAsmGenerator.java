@@ -1,5 +1,7 @@
 package io.github.alexpapagre.tonycompiler.codegen;
 
+import java.util.List;
+
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -74,6 +76,9 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
         for (VariableSymbol param : function.getParameters()) {
             param.setSlot(nextLocal++);
+            if (param.isRef()) {
+                nextLocal++;
+            }
         }
 
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
@@ -123,13 +128,22 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
     public Void visit(VarExpr node) {
         VariableSymbol var = node.getVariable();
         int slot = var.getSlot();
-
         Type type = var.getType();
 
-        if (type instanceof IntType || type instanceof BoolType) {
-            mv.visitVarInsn(Opcodes.ILOAD, slot);
-        } else {
+        if (var.isRef()) {
             mv.visitVarInsn(Opcodes.ALOAD, slot);
+            mv.visitVarInsn(Opcodes.ILOAD, slot + 1);
+            if (type instanceof IntType || type instanceof BoolType) {
+                mv.visitInsn(Opcodes.IALOAD);
+            } else if (type instanceof CharType) {
+                mv.visitInsn(Opcodes.CALOAD);
+            }
+        } else {
+            if (type instanceof IntType || type instanceof BoolType) {
+                mv.visitVarInsn(Opcodes.ILOAD, slot);
+            } else {
+                mv.visitVarInsn(Opcodes.ALOAD, slot);
+            }
         }
 
         return null;
@@ -138,18 +152,26 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
     @Override
     public Void visit(AssignStmt node) {
         if (node.getTarget() instanceof VarExpr expr) {
-            node.getValue().accept(this);
-
             VariableSymbol var = expr.getVariable();
-
             int slot = var.getSlot();
-
             Type type = var.getType();
 
-            if (type instanceof IntType || type instanceof BoolType) {
-                mv.visitVarInsn(Opcodes.ISTORE, slot);
+            if (var.isRef()) {
+                mv.visitVarInsn(Opcodes.ALOAD, slot);
+                mv.visitVarInsn(Opcodes.ILOAD, slot + 1);
+                node.getValue().accept(this);
+                if (type instanceof IntType || type instanceof BoolType) {
+                    mv.visitInsn(Opcodes.IASTORE);
+                } else if (type instanceof CharType) {
+                    mv.visitInsn(Opcodes.CASTORE);
+                }
             } else {
-                mv.visitVarInsn(Opcodes.ASTORE, slot);
+                node.getValue().accept(this);
+                if (type instanceof IntType || type instanceof BoolType) {
+                    mv.visitVarInsn(Opcodes.ISTORE, slot);
+                } else {
+                    mv.visitVarInsn(Opcodes.ASTORE, slot);
+                }
             }
         } else if (node.getTarget() instanceof ArrayAccess access) {
             access.getArray().accept(this);
@@ -157,7 +179,6 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
             node.getValue().accept(this);
 
             Type elem = ((ArrayType) access.getArray().getType()).getElementType();
-
             if (elem instanceof IntType || elem instanceof BoolType) {
                 mv.visitInsn(Opcodes.IASTORE);
             } else if (elem instanceof CharType) {
@@ -183,9 +204,18 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
     @Override
     public Void visit(CallExpr node) {
         FunctionSymbol function = node.getFunction();
+        List<Expr> args = node.getArgs();
+        List<VariableSymbol> params = function.getParameters();
 
-        for (Expr arg : node.getArgs()) {
-            arg.accept(this);
+        for (int i = 0; i < args.size(); i++) {
+            VariableSymbol param = params.get(i);
+            if (param.isRef()) {
+                ArrayAccess access = (ArrayAccess) args.get(i);
+                access.getArray().accept(this);
+                access.getIndex().accept(this);
+            } else {
+                args.get(i).accept(this);
+            }
         }
 
         if (function.isBuiltin()) {
@@ -562,23 +592,28 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
         Type elem = ((ArrayType) node.getArray().getType()).getElementType();
 
-        if (elem instanceof IntType || elem instanceof BoolType)
+        if (elem instanceof IntType || elem instanceof BoolType) {
             mv.visitInsn(Opcodes.IALOAD);
-        else if (elem instanceof CharType)
+        } else if (elem instanceof CharType) {
             mv.visitInsn(Opcodes.CALOAD);
-        else
+        } else {
             throw new RuntimeException();
+        }
 
         return null;
     }
 
     private String buildDescriptor(FunctionSymbol fn) {
-
         StringBuilder sb = new StringBuilder();
         sb.append("(");
 
         for (VariableSymbol p : fn.getParameters()) {
-            sb.append(toJvmType(p.getType()));
+            if (p.isRef()) {
+                sb.append("[").append(toJvmType(p.getType()));
+                sb.append("I");
+            } else {
+                sb.append(toJvmType(p.getType()));
+            }
         }
 
         sb.append(")");
