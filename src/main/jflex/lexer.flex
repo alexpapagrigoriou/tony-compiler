@@ -1,6 +1,6 @@
-package io.github.alexpapagre.tonycompiler;
+package io.github.alexpapagrigoriou.tonycompiler;
 
-import io.github.alexpapagre.tonycompiler.lexer.LexerException;
+import io.github.alexpapagrigoriou.tonycompiler.lexer.LexerException;
 import java_cup.runtime.Symbol;
 
 %%

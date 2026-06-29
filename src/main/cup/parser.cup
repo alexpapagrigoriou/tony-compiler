@@ -1,9 +1,9 @@
-package io.github.alexpapagre.tonycompiler;
+package io.github.alexpapagrigoriou.tonycompiler;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import io.github.alexpapagre.tonycompiler.ast.*;
+import io.github.alexpapagrigoriou.tonycompiler.ast.*;
 
 terminal AND, BOOL, CHAR, DECL, DEF, ELSE, ELSIF, END, EXIT, FALSE, FOR, HEAD, IF, INT, LIST, MOD, NEW, NIL, NILQ, NOT, OR, REF, RETURN, SKIP, TAIL, TRUE;
 terminal PLUS, MINUS, TIMES, DIV, HASH, EQ, NEQ, LT, GT, LEQ, GEQ;

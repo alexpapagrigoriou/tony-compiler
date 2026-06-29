@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.alexpapagre</groupId>
+    <groupId>io.github.alexpapagrigoriou</groupId>
     <artifactId>tony-compiler</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
@@ -12,7 +12,7 @@
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <main.class>io.github.alexpapagre.${artifactId.clean}.Main</main.class>
+        <main.class>io.github.alexpapagrigoriou.${artifactId.clean}.Main</main.class>
         <jar.name>${project.artifactId}</jar.name>
 
         <lombok.version>1.18.46</lombok.version>
