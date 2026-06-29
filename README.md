@@ -1,6 +1,6 @@
 # Tony Compiler
 
- A compiler for the Tony programming language that generates JVM bytecode.
+A compiler for the Tony programming language that generates JVM bytecode.
 
 ## Language Specification
 
