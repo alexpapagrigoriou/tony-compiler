@@ -7,6 +7,7 @@ JAR=target/tony-compiler.jar
 
 usage() {
     echo "Usage:"
+    echo "  ./tony compile"
     echo "  ./tony build <inputFile.tony> [-o <outputName>]"
     echo "  ./tony run [<className>]"
     echo "  ./tony clean"
