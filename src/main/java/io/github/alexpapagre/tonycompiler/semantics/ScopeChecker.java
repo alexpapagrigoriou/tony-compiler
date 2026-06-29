@@ -34,7 +34,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
                 }
             }
 
-            function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters, FunctionKind.USER_DEFINED);
+            function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters, null);
         } else if (existing instanceof FunctionSymbol fs) {
             function = fs;
 
@@ -90,7 +90,7 @@ public class ScopeChecker extends TraversalVisitor<Void> {
             }
         }
 
-        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters, FunctionKind.USER_DEFINED);
+        FunctionSymbol function = new FunctionSymbol(name, node.getHeader().getReturnType(), parameters, null);
 
         function.setDeclared();
 

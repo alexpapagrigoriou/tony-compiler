@@ -13,7 +13,8 @@ import io.github.alexpapagre.tonycompiler.visitor.TraversalVisitor;
 
 public class JavaAsmGenerator extends TraversalVisitor<Void> {
     private final String className;
-    private final String runtimePath;
+    private final String runtimePackage;
+    private final String listPath;
 
     private ClassWriter cw;
     private MethodVisitor mv;
@@ -22,9 +23,10 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
 
     private FunctionSymbol currentFunction;
 
-    public JavaAsmGenerator(String className, String runtimePath) {
+    public JavaAsmGenerator(String className, String runtimePackage, String listName) {
         this.className = className;
-        this.runtimePath = runtimePath;
+        this.runtimePackage = runtimePackage;
+        this.listPath = runtimePackage + listName;
     }
 
     public byte[] generate(Program program) {
@@ -98,7 +100,8 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
         if (returnType instanceof IntType || returnType instanceof BoolType) {
             mv.visitInsn(Opcodes.ICONST_0);
             mv.visitInsn(Opcodes.IRETURN);
-        } else if (returnType instanceof ArrayType || returnType instanceof CharType) {
+        } else if (returnType instanceof CharType || returnType instanceof ArrayType
+                || returnType instanceof ListType) {
             mv.visitInsn(Opcodes.ACONST_NULL);
             mv.visitInsn(Opcodes.ARETURN);
         } else {
@@ -603,6 +606,47 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visit(HashExpr node) {
+        mv.visitTypeInsn(Opcodes.NEW, listPath);
+        mv.visitInsn(Opcodes.DUP);
+        node.getLeft().accept(this);
+        node.getRight().accept(this);
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, listPath,
+                "<init>", "(IL" + listPath + ";)V", false);
+        return null;
+    }
+
+    @Override
+    public Void visit(HeadExpr node) {
+        node.getExpr().accept(this);
+        mv.visitFieldInsn(Opcodes.GETFIELD, listPath,
+                "head", "I");
+        return null;
+    }
+
+    @Override
+    public Void visit(TailExpr node) {
+        node.getExpr().accept(this);
+        mv.visitFieldInsn(Opcodes.GETFIELD, listPath,
+                "tail", "L" + listPath + ";");
+        return null;
+    }
+
+    @Override
+    public Void visit(NilCheckExpr node) {
+        Label trueLabel = new Label();
+        Label endLabel = new Label();
+        node.getExpr().accept(this);
+        mv.visitJumpInsn(Opcodes.IFNULL, trueLabel);
+        mv.visitInsn(Opcodes.ICONST_0);
+        mv.visitJumpInsn(Opcodes.GOTO, endLabel);
+        mv.visitLabel(trueLabel);
+        mv.visitInsn(Opcodes.ICONST_1);
+        mv.visitLabel(endLabel);
+        return null;
+    }
+
     private String buildDescriptor(FunctionSymbol fn) {
         StringBuilder sb = new StringBuilder();
         sb.append("(");
@@ -639,12 +683,16 @@ public class JavaAsmGenerator extends TraversalVisitor<Void> {
             return "[" + toJvmType(array.getElementType());
         }
 
+        if (type instanceof ListType) {
+            return "L" + listPath + ";";
+        }
+
         throw new RuntimeException("Unsupported type: " + type);
     }
 
     private void emitRuntimeCall(FunctionSymbol function) {
         mv.visitMethodInsn(
-                Opcodes.INVOKESTATIC, runtimePath,
+                Opcodes.INVOKESTATIC, runtimePackage + function.getBuiltinName(),
                 function.getName(), buildDescriptor(function), false);
     }
 }

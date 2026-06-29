@@ -9,12 +9,12 @@ import lombok.Getter;
 public class FunctionSymbol extends Symbol {
     private final Type returnType;
     private final List<VariableSymbol> parameters;
-    private final FunctionKind kind;
+    private final BuiltinClass kind;
 
     private boolean declared = false;
     private boolean defined = false;;
 
-    public FunctionSymbol(String name, Type returnType, List<VariableSymbol> parameters, FunctionKind kind) {
+    public FunctionSymbol(String name, Type returnType, List<VariableSymbol> parameters, BuiltinClass kind) {
         super(name);
 
         this.returnType = returnType;
@@ -31,6 +31,10 @@ public class FunctionSymbol extends Symbol {
     }
 
     public boolean isBuiltin() {
-        return kind == FunctionKind.BUILTIN;
+        return kind != null;
+    }
+
+    public String getBuiltinName() {
+        return kind.getName();
     }
 }

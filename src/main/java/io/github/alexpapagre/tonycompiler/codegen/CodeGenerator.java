@@ -7,12 +7,14 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import io.github.alexpapagre.tonycompiler.ast.Program;
+import io.github.alexpapagre.tonycompiler.symbol.BuiltinClass;
 
 public final class CodeGenerator {
     private static final String OUT_DIR = "out";
     private static final String CLASS_NAME = "Main";
-    private static final String RUNTIME_PATH = "io/github/alexpapagre/tonycompiler/runtime/";
-    private static final String RUNTIME_NAME = "Runtime";
+
+    private static final String RUNTIME_PACKAGE = "io/github/alexpapagre/tonycompiler/runtime/";
+    private static final String LIST_NAME = "TonyList";
 
     private CodeGenerator() {
     }
@@ -22,34 +24,33 @@ public final class CodeGenerator {
             Path outDir = Path.of(OUT_DIR);
             Files.createDirectories(outDir);
 
-            byte[] bytecode = new JavaAsmGenerator(CLASS_NAME, RUNTIME_PATH + RUNTIME_NAME).generate(program);
+            byte[] bytecode = new JavaAsmGenerator(CLASS_NAME, RUNTIME_PACKAGE, LIST_NAME).generate(program);
 
             Files.write(outDir.resolve(CLASS_NAME + ".class"), bytecode);
 
-            copyRuntime(outDir);
+            copyClass(outDir, RUNTIME_PACKAGE + LIST_NAME + ".class");
+
+            for (BuiltinClass builtin : BuiltinClass.values()) {
+                copyClass(outDir, RUNTIME_PACKAGE + builtin.getName() + ".class");
+            }
         } catch (IOException e) {
             System.err.println("Failed to write bytecode to file!");
             System.exit(1);
         }
     }
 
-    private static void copyRuntime(Path outDir) {
+    private static void copyClass(Path outDir, String classPath) {
         try {
-            String runtimePath = RUNTIME_PATH + RUNTIME_NAME + ".class";
-
-            try (InputStream in = JavaAsmGenerator.class.getClassLoader().getResourceAsStream(runtimePath)) {
+            try (InputStream in = JavaAsmGenerator.class.getClassLoader().getResourceAsStream(classPath)) {
                 if (in == null) {
-                    throw new RuntimeException(RUNTIME_NAME + ".class not found in classpath");
+                    throw new RuntimeException(classPath + " not found in classpath");
                 }
-
-                Path target = outDir.resolve(runtimePath);
-
+                Path target = outDir.resolve(classPath);
                 Files.createDirectories(target.getParent());
                 Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
             }
-
         } catch (IOException e) {
-            throw new RuntimeException("Failed to copy runtime", e);
+            throw new RuntimeException("Failed to copy " + classPath, e);
         }
     }
 }
