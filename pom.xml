@@ -15,7 +15,7 @@
         <main.class>io.github.alexpapagrigoriou.${artifactId.clean}.Main</main.class>
         <jar.name>${project.artifactId}</jar.name>
 
-        <lombok.version>1.18.46</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
         <jflex.version>1.9.1</jflex.version>
         <java-cup.version>11b-20160615-3</java-cup.version>
         <asm.version>9.10</asm.version>
